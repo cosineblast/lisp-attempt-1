@@ -64,7 +64,7 @@ int la1_bindings_lookup(Bindings *bindings, KnownSymbol key, Value **result) {
     return 0;
 }
 
-void la1_binding_stack_add(BindingStack *stack, Bindings *bindings) {
+void la1_binding_stack_push(BindingStack *stack, Bindings *bindings) {
     stack->list = la1_cons(bindings, stack->list);
 }
 
@@ -84,4 +84,8 @@ int la1_binding_stack_lookup(BindingStack *stack, KnownSymbol key, Value **resul
     }
 
     return 0;
+}
+
+void la1_binding_stack_pop(BindingStack *stack) {
+    stack->list = stack->list->next;
 }
