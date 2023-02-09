@@ -21,6 +21,12 @@ Value *eval_symbol(LA1_State *p_state, KnownSymbol symbol);
 
 void initialize_prelude(LA1_State *p_state);
 
+Value *eval_function_call(LA1_State *state, LinkedList *arguments);
+
+Value *apply_symbol(LA1_State *state, const LinkedList *arguments, KnownSymbol symbol);
+
+LinkedList *evaluate_children(LA1_State *state, struct LinkedList *list);
+
 LA1_State *la1_create_la1_state() {
 
     LA1_State *state = la1_malloc(sizeof(*state));
@@ -107,6 +113,19 @@ Value *la1_eval(LA1_State *state, Value *value) {
 
 }
 
+static int lookup_variable(LA1_State *state, KnownSymbol symbol, Value **result) {
+
+    if (la1_binding_stack_lookup(state->current_binding_stack, symbol, result)) {
+        return 1;
+    }
+
+    if (la1_bindings_lookup(state->global_bindings, symbol, result)) {
+        return 1;
+    }
+
+    return 0;
+}
+
 Value *eval_symbol(LA1_State *state, KnownSymbol symbol) {
 
     if (symbol == state->nil->content.symbol) {
@@ -115,23 +134,21 @@ Value *eval_symbol(LA1_State *state, KnownSymbol symbol) {
 
     Value *result;
 
-    if (la1_binding_stack_lookup(state->current_binding_stack, symbol, &result)) {
-        return result;
-    }
-
-    if (la1_bindings_lookup(state->global_bindings, symbol, &result)) {
+    if (lookup_variable(state, symbol, &result)) {
         return result;
     }
 
     die("Symbol not found.");
 }
 
+Value *apply(LA1_State *state, LinkedList *arguments);
+
 Value *eval_list(LA1_State *state, LinkedList *list) {
 
     Value *first_element = list->content;
 
-    if (first_element->type != LA1_VALUE_SYMBOL) {
-        die("Cannot call given value");
+    if (first_element->type == LA1_VALUE_NUMBER) {
+        die("Cannot call number");
     }
 
     Value *result;
@@ -139,7 +156,59 @@ Value *eval_list(LA1_State *state, LinkedList *list) {
     if (try_eval_special_form(state, list, &result)) {
         return result;
     } else {
-        die("BOOPIS calls are not implemented");
+        return apply(state, evaluate_children(state, list));
+    }
+}
+
+
+LinkedList *evaluate_children(LA1_State *state, struct LinkedList *list) {
+
+    if (list == NULL) {
+        return NULL;
+    }
+
+    LinkedList *result = la1_cons(la1_eval(state, list->content), NULL);
+
+    LinkedList *current_argument = list->next;
+    LinkedList *result_end = result;
+
+    while (current_argument != NULL) {
+
+        result_end->next = la1_cons(la1_eval(state, current_argument->content), NULL);
+        result_end = result_end->next;
+
+        current_argument = current_argument->next;
+    }
+
+    return result;
+}
+
+Value *apply(LA1_State *state, LinkedList *call) {
+
+    Value *target_value = call->content;
+
+    if (target_value->type != LA1_VALUE_CLOSURE) {
+        die("Cannot apply non-closure value.");
+    }
+
+    Closure *closure = target_value->content.closure;
+
+    return closure->function(state, call->next, closure->extra);
+}
+
+Value *apply_symbol(LA1_State *state, const LinkedList *arguments, KnownSymbol symbol) {
+    Value *result;
+
+    if (lookup_variable(state, symbol, &result)) {
+        if (result->type != LA1_VALUE_CLOSURE) {
+            die("Tried to call uncallable type");
+        }
+
+        Closure *closure = result->content.closure;
+
+        return closure->function(state, arguments->next, closure->extra);
+    } else {
+        die("No closure associated with variable");
     }
 }
 
@@ -151,7 +220,10 @@ int try_eval_special_form(LA1_State *state, LinkedList *list, Value **result) {
 
     assert(state && list && result);
     Value *first_value = list->content;
-    assert(first_value->type == LA1_VALUE_SYMBOL);
+
+    if (first_value->type != LA1_VALUE_SYMBOL) {
+        return 0;
+    }
 
     KnownSymbol symbol = first_value->content.symbol;
 
