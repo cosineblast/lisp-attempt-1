@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include "parsing/lexer.h"
+#include "parsing/parser.h"
 
-int main() {
+void test_lexer() {
 
     LexerState *state = la1_create_lexer_state();
 
@@ -34,8 +35,16 @@ int main() {
     }
 
     la1_free_lexer_state(state);
+}
 
+void test_parser() {
 
+    ParseValue *value = la1_parse_value_from_stdin();
 
-    return 0;
+    la1_dump_parse_value(value);
+}
+
+int main() {
+    test_parser();
+
 }
