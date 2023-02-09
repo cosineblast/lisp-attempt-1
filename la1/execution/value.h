@@ -54,12 +54,19 @@ struct Value {
     UntaggedValue content;
 };
 
-Value* la1_list_into_value(LinkedList *value);
-Value* la1_number_into_value(long value);
+Value *la1_list_into_value(LinkedList *value);
+
+Value *la1_number_into_value(long value);
 
 Value *la1_symbol_into_value(KnownSymbol symbol);
 
+Closure *la1_create_closure(ClosureFunction *function, void *extra);
+
 Value *la1_closure_into_value(Closure *closure);
+
+void la1_expect_type(Value *value, ValueType type);
+
+void la1_expect_size(LinkedList *list, unsigned int size);
 
 void la1_display_value(Value *value);
 

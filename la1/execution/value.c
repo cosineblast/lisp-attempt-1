@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include "value.h"
 #include "../common/alloc.h"
+#include "../common/die.h"
 #include <stdlib.h>
 
 
@@ -75,6 +76,30 @@ Value *la1_closure_into_value(Closure *closure) {
     result->content.closure = closure;
     result->type = LA1_VALUE_CLOSURE;
     return result;
+}
+
+Closure *la1_create_closure(ClosureFunction *function, void *extra) {
+
+    Closure *result = la1_malloc(sizeof(*result));
+    result->function = function;
+    result->extra = extra;
+    return result;
+}
+
+void la1_expect_type(Value *value, ValueType type) {
+
+    if (value->type != type) {
+        die("Unexpected type");
+    }
+
+}
+
+void la1_expect_size(LinkedList *list, unsigned int size) {
+
+    if (la1_find_list_size(list) != size) {
+        die("Wrong number of arguments");
+    }
+
 }
 
 

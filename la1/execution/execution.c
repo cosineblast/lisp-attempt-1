@@ -6,6 +6,7 @@
 #include "../common/alloc.h"
 #include "special_forms.h"
 #include "../common/die.h"
+#include "builtin.h"
 
 #include <assert.h>
 #include <string.h>
@@ -43,13 +44,31 @@ LA1_State *la1_create_la1_state() {
     return state;
 }
 
+static Value *closure_for(ClosureFunction *function) {
+    return la1_closure_into_value(la1_create_closure(function, NULL));
+}
+
 void initialize_prelude(LA1_State *state) {
 
-    la1_bindings_add(
-            state->global_bindings,
-            la1_intern(state, "n"),
-            la1_number_into_value(10)
-    );
+    struct {
+        KnownSymbol symbol;
+        ClosureFunction *function;
+    } builtin_functions[]
+            = {
+                    {la1_intern(state, "cons"), la1_builtin_cons},
+                    {la1_intern(state, "list"), la1_builtin_list},
+                    {la1_intern(state, "+"),    la1_builtin_plus}
+            };
+
+    for (int i = 0; i < sizeof(builtin_functions) / sizeof(builtin_functions[0]); i++) {
+
+        la1_bindings_add(
+                state->global_bindings,
+                builtin_functions[i].symbol,
+                closure_for(builtin_functions[i].function)
+        );
+    }
+
 
 }
 
@@ -144,6 +163,10 @@ Value *eval_symbol(LA1_State *state, KnownSymbol symbol) {
 Value *apply(LA1_State *state, LinkedList *arguments);
 
 Value *eval_list(LA1_State *state, LinkedList *list) {
+
+    if (list == NULL) {
+        return la1_list_into_value(NULL);
+    }
 
     Value *first_element = list->content;
 
