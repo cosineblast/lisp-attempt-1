@@ -51,6 +51,8 @@ void push_special_forms(LA1_State *state) {
 
     assert(state);
 
+    state->nil = la1_symbol_into_value(la1_intern(state, "nil"));
+
     SpecialFormEntry table[SPECIAL_FORM_COUNT] = {
             [LA1_SPECIAL_FORM_IF] = {la1_intern(state, "if"), la1_if_special_form},
             [LA1_SPECIAL_FORM_LAMBDA] = {la1_intern(state, "lambda"), la1_lambda_special_form},
@@ -63,8 +65,6 @@ void push_special_forms(LA1_State *state) {
     assert(sizeof(table) == sizeof(state->special_form_table));
 
     memcpy(state->special_form_table, table, sizeof(table));
-
-    state->nil = la1_symbol_into_value(la1_intern(state, "nil"));
 }
 
 

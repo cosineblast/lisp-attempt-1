@@ -119,5 +119,16 @@ Value *la1_do_special_form(LA1_State *state, LinkedList *arguments) {
     (void) state;
     (void) arguments;
 
-    die("Illegal attempt to call to nil.");
+    Value *result = state->nil;
+
+    LinkedList *current = arguments;
+
+    while (current != NULL) {
+
+        result = la1_eval(state, current->content);
+
+        current = current->next;
+    }
+
+    return result;
 }
