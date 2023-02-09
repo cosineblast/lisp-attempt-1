@@ -14,4 +14,7 @@ typedef struct LinkedList LinkedList;
 
 LinkedList *la1_cons(void *content, LinkedList *next);
 
+// todo: adopt usage of this.
+LinkedList *la1_empty_list();
+
 #endif //LATTEMPT_LIST_H

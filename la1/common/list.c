@@ -12,3 +12,7 @@ LinkedList *la1_cons(void *content, LinkedList *next) {
     result->next = next;
     return result;
 }
+
+LinkedList *la1_empty_list() {
+    return NULL;
+}

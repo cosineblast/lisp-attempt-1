@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "parsing/lexer.h"
 #include "parsing/parser.h"
+#include "execution/execution.h"
 
 void test_lexer() {
 
@@ -44,7 +45,18 @@ void test_parser() {
     la1_dump_parse_value(value);
 }
 
+void test_execution() {
+
+    LA1_State *state = la1_create_la1_state();
+
+    ParseValue *parse_value = la1_parse_value_from_stdin();
+
+    Value *value = la1_realize_parse_value(state, parse_value);
+
+    la1_display_value(value);
+}
+
 int main() {
-    test_parser();
+    test_execution();
 
 }
