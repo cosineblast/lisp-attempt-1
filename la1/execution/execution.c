@@ -4,6 +4,8 @@
 
 #include "execution.h"
 #include "../common/alloc.h"
+#include "special_forms.h"
+#include "../common/die.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,13 +14,12 @@
 
 void push_special_forms(LA1_State *p_state);
 
-LinkedList *realize_list(LA1_State *state, LinkedList *p_list);
 
-long realize_number(LA1_State *state, long number);
+int try_eval_special_form(LA1_State *state, LinkedList *list, Value **result);
 
-Value *realize_symbol_or_nil(LA1_State *state, char *input_symbol);
+Value *eval_list(LA1_State *p_state, LinkedList *p_list);
 
-int try_eval_special_form(LinkedList *list, Value **value);
+Value *eval_symbol(LA1_State *p_state, KnownSymbol symbol);
 
 LA1_State *la1_create_la1_state() {
 
@@ -38,60 +39,29 @@ void push_special_forms(LA1_State *state) {
 
     assert(state);
 
-    state->special_forms.if_symbol = la1_intern(state, "if");
-    state->special_forms.lambda_symbol = la1_intern(state, "lambda");
-    state->special_forms.quote_symbol = la1_intern(state, "quote");
-    state->special_forms.let_symbol = la1_intern(state, "let");
-    state->special_forms.nil_symbol = la1_intern(state, "nil");
+    SpecialFormSymbols *symbols = &state->special_forms;
 
-    state->special_forms.nil = la1_symbol_into_value(state->special_forms.nil_symbol);
+    symbols->if_symbol = la1_intern(state, "if");
+    symbols->lambda_symbol = la1_intern(state, "lambda");
+    symbols->quote_symbol = la1_intern(state, "quote");
+    symbols->let_symbol = la1_intern(state, "let");
+    symbols->nil_symbol = la1_intern(state, "nil");
+
+    symbols->nil = la1_symbol_into_value(symbols->nil_symbol);
+
+    SpecialFormEntry table[SPECIAL_FORM_COUNT] = {
+            {symbols->if_symbol,     la1_if_special_form},
+            {symbols->lambda_symbol, la1_lambda_special_form},
+            {symbols->quote_symbol,  la1_quote_special_form},
+            {symbols->let_symbol,    la1_let_special_form},
+            {symbols->nil_symbol,    la1_nil_special_form},
+    };
+
+    assert(sizeof(table) == sizeof(state->special_form_table));
+
+    memcpy(state->special_form_table, table, sizeof(table));
 }
 
-Value *la1_realize_parse_value(LA1_State *state, ParseValue *value) {
-
-    switch (value->type) {
-
-        case PARSE_VALUE_LIST:
-            return la1_list_into_value(realize_list(state, value->content.list));
-
-        case PARSE_VALUE_NUMBER:
-            return la1_number_into_value(realize_number(state, value->content.number));
-
-        case PARSE_VALUE_SYMBOL:
-            return realize_symbol_or_nil(state, value->content.symbol);
-    }
-
-    abort();
-}
-
-
-long realize_number(LA1_State *state, long number) {
-    return number;
-}
-
-LinkedList *realize_list(LA1_State *state, LinkedList *list) {
-
-    if (list == NULL) {
-        return NULL;
-    } else {
-        return la1_cons(
-                la1_realize_parse_value(state, list->content),
-                realize_list(state, list->next)
-
-        );
-    }
-}
-
-Value *realize_symbol_or_nil(LA1_State *state, char *input_symbol) {
-
-    KnownSymbol symbol = la1_intern(state, input_symbol);
-
-    if (symbol == state->special_forms.nil_symbol) {
-        return state->special_forms.nil;
-    } else {
-        return la1_symbol_into_value(symbol);
-    }
-}
 
 KnownSymbol la1_intern(LA1_State *state, const char *symbol) {
 
@@ -114,30 +84,61 @@ Value *la1_eval(LA1_State *state, Value *value) {
 
     assert(state && value);
 
-    if (value->type != LA1_VALUE_LIST || value->content.list == NULL) {
-        return value;
+    switch (value->type) {
+        case LA1_VALUE_NUMBER: return value;
+
+        case LA1_VALUE_LIST: return eval_list(state, value->content.list);
+
+        case LA1_VALUE_SYMBOL: return eval_symbol(state, value->content.symbol);
+
+        case LA1_VALUE_FUNCTION: die("not implemented");
     }
 
-    LinkedList *list  = value->content.list;
+    die("Not implemented");
+
+}
+
+Value *eval_symbol(LA1_State *state, KnownSymbol symbol) {
+
+    if (symbol == state->special_forms.nil_symbol) {
+        return state->special_forms.nil;
+    }
+
+    die("Variables are not implemented");
+}
+
+Value *eval_list(LA1_State *state, LinkedList *list) {
 
     Value *first_element = list->content;
 
     if (first_element->type != LA1_VALUE_SYMBOL) {
-        fprintf(stderr, "Cannot call value .\n");
-        abort();
+        die("Cannot call given value");
     }
 
     Value *result;
 
-    if (try_eval_special_form(list, &result)) {
+    if (try_eval_special_form(state, list, &result)) {
         return result;
-    }
-    else {
-        fprintf(stderr, "Not implemented\n");
-        abort();
+    } else {
+        die("Function calls are not implemented");
     }
 }
 
-int try_eval_special_form(LinkedList *list, Value **value) {
+int try_eval_special_form(LA1_State *state, LinkedList *list, Value **result) {
+
+    assert(state && list && result);
+    Value *first_value = list->content;
+    assert(first_value->type == LA1_VALUE_SYMBOL);
+
+    KnownSymbol symbol = first_value->content.symbol;
+
+    for (int i = 0; i < SPECIAL_FORM_COUNT; i++) {
+        if (state->special_form_table[i].symbol == symbol) {
+
+            *result = state->special_form_table[i].function(state, list->next);
+            return 1;
+        }
+    }
+
     return 0;
 }

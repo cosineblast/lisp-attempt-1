@@ -4,6 +4,7 @@
 
 #include "lexer.h"
 #include "../common/alloc.h"
+#include "../common/die.h"
 #include <stdlib.h>
 
 #include <stdio.h>
@@ -78,6 +79,7 @@ int la1_lex(LexerState *state) {
     }
 
     fprintf(stderr, "Unrecognized token character %c\n", current);
+    die("Sytnax Error");
 }
 
 

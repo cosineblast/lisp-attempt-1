@@ -53,7 +53,7 @@ void test_execution() {
 
     Value *value = la1_realize_parse_value(state, parse_value);
 
-    la1_display_value(value);
+    la1_display_value(la1_eval(state, value));
 }
 
 int main() {

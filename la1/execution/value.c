@@ -12,8 +12,17 @@ void display_list_in(LinkedList *list);
 
 void display_list(LinkedList *list);
 
+void display_value(Value *value);
+
 void la1_display_value(Value *value) {
 
+    display_value(value);
+
+    printf("\n");
+
+}
+
+void display_value(Value *value) {
     switch (value->type) {
 
         case LA1_VALUE_LIST:
@@ -32,8 +41,8 @@ void la1_display_value(Value *value) {
             fprintf(stderr, "Illegal parse value type %d\n", value->type);
             abort();
     }
-
 }
+
 
 Value *la1_list_into_value(LinkedList *value) {
     Value *result = la1_malloc(sizeof(*result)) ;
@@ -62,7 +71,7 @@ void display_list(LinkedList *list) {
         printf("()");
     } else {
         printf("( ");
-        la1_display_value(list->content);
+        display_value(list->content);
         printf(" ");
         display_list_in(list->next);
         printf(")");
@@ -73,7 +82,7 @@ void display_list(LinkedList *list) {
 void display_list_in(LinkedList *list) {
 
     if (list != NULL) {
-        la1_display_value(list->content);
+        display_value(list->content);
         printf(" ");
         display_list_in(list->next);
     }
