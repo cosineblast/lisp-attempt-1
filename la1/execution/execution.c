@@ -99,7 +99,7 @@ Value *la1_eval(LA1_State *state, Value *value) {
         case LA1_VALUE_SYMBOL:
             return eval_symbol(state, value->content.symbol);
 
-        case LA1_VALUE_FUNCTION:
+        case LA1_VALUE_CLOSURE:
             die("not implemented");
     }
 
@@ -139,8 +139,12 @@ Value *eval_list(LA1_State *state, LinkedList *list) {
     if (try_eval_special_form(state, list, &result)) {
         return result;
     } else {
-        die("Function calls are not implemented");
+        die("BOOPIS calls are not implemented");
     }
+}
+
+Value *la1_apply_data(LA1_State *state, DataClosure *closure, LinkedList *arguments) {
+    die("Apply not implemented");
 }
 
 int try_eval_special_form(LA1_State *state, LinkedList *list, Value **result) {

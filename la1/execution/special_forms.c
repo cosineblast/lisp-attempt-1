@@ -5,8 +5,11 @@
 #include <assert.h>
 #include "special_forms.h"
 #include "../common/die.h"
+#include "../common/alloc.h"
 
 Bindings *load_bindings(LA1_State *state, LinkedList *p_list, unsigned int size);
+
+LinkedList *get_function_parameters(LinkedList *lambda_arguments);
 
 Value *la1_if_special_form(LA1_State *state, LinkedList *arguments) {
 
@@ -25,18 +28,6 @@ Value *la1_if_special_form(LA1_State *state, LinkedList *arguments) {
     }
 }
 
-Value *la1_lambda_special_form(LA1_State *state, LinkedList *arguments) {
-
-    (void) state;
-
-    unsigned int size = la1_find_list_size(arguments);
-
-    if (size != 3) {
-        die("lambda: Expected 3 arguments");
-    }
-
-    die("Lambda is not implemented");
-}
 
 Value *la1_quote_special_form(LA1_State *state, LinkedList *arguments) {
 
@@ -131,4 +122,53 @@ Value *la1_do_special_form(LA1_State *state, LinkedList *arguments) {
     }
 
     return result;
+}
+
+
+static Value *apply_closure_function(LA1_State *state, LinkedList *arguments, void *extra) {
+
+    DataClosure *data_closure = extra;
+
+    return la1_apply_data(state, data_closure, arguments);
+}
+
+Value *la1_lambda_special_form(LA1_State *state, LinkedList *lambda_arguments) {
+
+    (void) state;
+
+    unsigned int size = la1_find_list_size(lambda_arguments);
+
+    if (size != 2) {
+        die("lambda: Expected 2 lambda_arguments");
+    }
+
+    DataClosure *data_closure = la1_malloc(sizeof(*data_closure));
+    data_closure->parameters = get_function_parameters(lambda_arguments);
+
+    // todo: this is a hack to get the environment quickly.
+    //  when you start implementing garbage collection and other stuff,
+    //  you will need to make this more clever
+    data_closure->environment = state->current_binding_stack->list;
+    data_closure->body_source = lambda_arguments->next->content;
+
+    Closure *result_closure = la1_malloc(sizeof(*data_closure));
+    result_closure->extra = data_closure;
+    result_closure->function = apply_closure_function;
+
+    return la1_closure_into_value(result_closure);
+}
+
+
+LinkedList *get_function_parameters(LinkedList *lambda_arguments) {
+    Value *function_arguments = lambda_arguments->content;
+
+    expect_type(function_arguments, LA1_VALUE_LIST);
+
+    LinkedList *function_arguments_list = function_arguments->content.list;
+
+    for (LinkedList *current = function_arguments_list; current != NULL; current = current->next) {
+        Value *arg_name = current->content;
+        expect_type(arg_name, LA1_VALUE_SYMBOL);
+    }
+    return function_arguments_list;
 }

@@ -46,16 +46,15 @@ struct LA1_State {
 };
 
 
-
-
 LA1_State *la1_create_la1_state();
 
 Value *la1_realize_parse_value(LA1_State *state, ParseValue *value);
 
-KnownSymbol la1_intern(LA1_State *state, const char * symbol);
+KnownSymbol la1_intern(LA1_State *state, const char *symbol);
 
 Value *la1_eval(LA1_State *state, Value *value);
 
+Value *la1_apply_data(LA1_State *state, DataClosure *closure, LinkedList *arguments);
 
 
 #endif //LATTEMPT_EXECUTION_H

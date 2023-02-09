@@ -37,7 +37,12 @@ void display_value(Value *value) {
             printf("%s", value->content.symbol);
             break;
 
+        case LA1_VALUE_CLOSURE:
+            printf("<function>");
+            break;
+
         default:
+
             fprintf(stderr, "Illegal parse value type %d\n", value->type);
             abort();
     }
@@ -45,25 +50,33 @@ void display_value(Value *value) {
 
 
 Value *la1_list_into_value(LinkedList *value) {
-    Value *result = la1_malloc(sizeof(*result)) ;
+    Value *result = la1_malloc(sizeof(*result));
     result->content.list = value;
     result->type = LA1_VALUE_LIST;
     return result;
 }
 
 Value *la1_number_into_value(long value) {
-    Value *result = la1_malloc(sizeof(*result)) ;
+    Value *result = la1_malloc(sizeof(*result));
     result->content.number = value;
     result->type = LA1_VALUE_NUMBER;
     return result;
 }
 
 Value *la1_symbol_into_value(KnownSymbol value) {
-    Value *result = la1_malloc(sizeof(*result)) ;
+    Value *result = la1_malloc(sizeof(*result));
     result->content.symbol = value;
     result->type = LA1_VALUE_SYMBOL;
     return result;
 }
+
+Value *la1_closure_into_value(Closure *closure) {
+    Value *result = la1_malloc(sizeof(*result));
+    result->content.closure = closure;
+    result->type = LA1_VALUE_CLOSURE;
+    return result;
+}
+
 
 void display_list(LinkedList *list) {
 
