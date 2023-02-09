@@ -3,28 +3,85 @@
 //
 
 #include <stddef.h>
+#include <assert.h>
 #include "binding.h"
+#include "../common/alloc.h"
 
-BindingStack *la1_binding_stack_create() {
-    return NULL;
+
+Bindings *la1_bindings_create() {
+    Bindings *bindings = la1_malloc(sizeof(*bindings));
+    bindings->content = NULL;
+    bindings->size = 0;
+    bindings->capacity = 0;
+    return bindings;
 }
 
-void la1_bindings_add(Bindings *bindings, KnownSymbol key, Value *value) {
+Bindings *la1_bindings_create_with_capacity(size_t capacity) {
+    Bindings *bindings = la1_malloc(sizeof(*bindings));
+    bindings->content = la1_malloc(capacity * sizeof(Binding));
+    bindings->size = 0;
+    bindings->capacity = capacity;
+    return bindings;
+}
 
+BindingStack *la1_binding_stack_create() {
+    BindingStack *stack = la1_malloc(sizeof(*stack));
+    stack->list = NULL;
+    return stack;
+}
+
+#define DEFAULT_CAPACITY 4
+
+void la1_bindings_add(Bindings *bindings, KnownSymbol key, Value *value) {
+    assert(bindings && key && value);
+
+    if (bindings->size >= bindings->capacity) {
+        size_t new_capacity = bindings->capacity == 0
+                              ? DEFAULT_CAPACITY
+                              : 2 * bindings->capacity;
+
+        bindings->content = la1_realloc(bindings->content, new_capacity * sizeof(Binding));
+
+        bindings->capacity = new_capacity;
+    }
+
+    bindings->content[bindings->size].symbol = key;
+    bindings->content[bindings->size].value = value;
+
+    bindings->size += 1;
 }
 
 int la1_bindings_lookup(Bindings *bindings, KnownSymbol key, Value **result) {
+    assert(bindings && key && result);
+
+    for (size_t i = 0; i < bindings->size; i++) {
+        if (bindings->content[i].symbol == key) {
+            *result = bindings->content[i].value;
+            return 1;
+        }
+    }
+
     return 0;
 }
 
 void la1_binding_stack_add(BindingStack *stack, Bindings *bindings) {
-
+    stack->list = la1_cons(bindings, stack->list);
 }
 
 int la1_binding_stack_lookup(BindingStack *stack, KnownSymbol key, Value **result) {
-    return 0;
-}
 
-Bindings *la1_bindings_create() {
-    return NULL;
+    LinkedList *current = stack->list;
+
+    while (current != NULL) {
+
+        Bindings *bindings = current->content;
+
+        if (la1_bindings_lookup(bindings, key, result)) {
+            return 1;
+        }
+
+        current = current->next;
+    }
+
+    return 0;
 }

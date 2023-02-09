@@ -83,6 +83,7 @@ void display_list_in(LinkedList *list) {
 
     if (list != NULL) {
         display_value(list->content);
+
         printf(" ");
         display_list_in(list->next);
     }

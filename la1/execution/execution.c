@@ -7,8 +7,6 @@
 #include "special_forms.h"
 #include "../common/die.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 
@@ -21,6 +19,8 @@ Value *eval_list(LA1_State *p_state, LinkedList *p_list);
 
 Value *eval_symbol(LA1_State *p_state, KnownSymbol symbol);
 
+void initialize_prelude(LA1_State *p_state);
+
 LA1_State *la1_create_la1_state() {
 
     LA1_State *state = la1_malloc(sizeof(*state));
@@ -32,7 +32,19 @@ LA1_State *la1_create_la1_state() {
 
     push_special_forms(state);
 
+    initialize_prelude(state);
+
     return state;
+}
+
+void initialize_prelude(LA1_State *state) {
+
+    la1_bindings_add(
+            state->global_bindings,
+            la1_intern(state, "n"),
+            la1_number_into_value(10)
+    );
+
 }
 
 void push_special_forms(LA1_State *state) {
@@ -85,13 +97,17 @@ Value *la1_eval(LA1_State *state, Value *value) {
     assert(state && value);
 
     switch (value->type) {
-        case LA1_VALUE_NUMBER: return value;
+        case LA1_VALUE_NUMBER:
+            return value;
 
-        case LA1_VALUE_LIST: return eval_list(state, value->content.list);
+        case LA1_VALUE_LIST:
+            return eval_list(state, value->content.list);
 
-        case LA1_VALUE_SYMBOL: return eval_symbol(state, value->content.symbol);
+        case LA1_VALUE_SYMBOL:
+            return eval_symbol(state, value->content.symbol);
 
-        case LA1_VALUE_FUNCTION: die("not implemented");
+        case LA1_VALUE_FUNCTION:
+            die("not implemented");
     }
 
     die("Not implemented");
@@ -104,7 +120,17 @@ Value *eval_symbol(LA1_State *state, KnownSymbol symbol) {
         return state->special_forms.nil;
     }
 
-    die("Variables are not implemented");
+    Value *result;
+
+    if (la1_binding_stack_lookup(state->current_binding_stack, symbol, &result)) {
+        return result;
+    }
+
+    if (la1_bindings_lookup(state->global_bindings, symbol, &result)) {
+        return result;
+    }
+
+    die("Symbol not found.");
 }
 
 Value *eval_list(LA1_State *state, LinkedList *list) {

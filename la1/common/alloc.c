@@ -19,3 +19,15 @@ void *la1_malloc(size_t size) {
 
     return result;
 }
+
+void *la1_realloc(void *buffer, size_t size) {
+
+    void *result = realloc(buffer, size);
+
+    if (result == NULL) {
+        fprintf(stderr, "Failed to reallocate %zu bytes.\n", size);
+        abort();
+    }
+
+    return result;
+}

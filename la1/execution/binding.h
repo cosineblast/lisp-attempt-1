@@ -6,6 +6,7 @@
 #define LATTEMPT_BINDING_H
 
 #include "../common/list.h"
+#include <stddef.h>
 
 struct Value;
 
@@ -21,7 +22,9 @@ struct Binding {
 typedef struct Binding Binding;
 
 struct Bindings {
-    LinkedList list;
+    Binding *content;
+    size_t size;
+    size_t capacity;
 };
 
 typedef struct Bindings Bindings;
@@ -31,7 +34,7 @@ void la1_bindings_add(Bindings *bindings, KnownSymbol key, Value *value);
 int la1_bindings_lookup(Bindings *bindings, KnownSymbol key, Value **result);
 
 typedef struct {
-    LinkedList list;
+    LinkedList *list;
 } BindingStack;
 
 BindingStack *la1_binding_stack_create();
