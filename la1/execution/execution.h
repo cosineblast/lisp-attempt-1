@@ -9,21 +9,22 @@
 #include "value.h"
 #include "../parsing/parse_value.h"
 
-typedef struct {
-    KnownSymbol if_symbol;
-    KnownSymbol quote_symbol;
-    KnownSymbol nil_symbol;
-    KnownSymbol lambda_symbol;
-    KnownSymbol let_symbol;
-    Value *nil;
-}SpecialFormSymbols ;
+enum SpecialFormType {
+    LA1_SPECIAL_FORM_IF = 0,
+    LA1_SPECIAL_FORM_QUOTE = 1,
+    LA1_SPECIAL_FORM_NIL = 2,
+    LA1_SPECIAL_FORM_LAMBDA = 3,
+    LA1_SPECIAL_FORM_LET = 4,
+    LA1_SPECIAL_FORM_DO = 5,
+};
 
-#define SPECIAL_FORM_COUNT 5
+
+#define SPECIAL_FORM_COUNT 6
 
 struct LA1_State;
 typedef struct LA1_State LA1_State;
 
-typedef Value* SpecialFormFunction(LA1_State *state, LinkedList *arguments);
+typedef Value *SpecialFormFunction(LA1_State *state, LinkedList *arguments);
 
 typedef struct {
     KnownSymbol symbol;
@@ -39,8 +40,9 @@ struct LA1_State {
     LinkedList *past_binding_stacks;
     BindingStack *current_binding_stack;
 
-    SpecialFormSymbols special_forms;
     SpecialFormEntry special_form_table[SPECIAL_FORM_COUNT];
+
+    Value *nil;
 };
 
 

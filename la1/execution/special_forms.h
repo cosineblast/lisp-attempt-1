@@ -15,5 +15,7 @@ Value *la1_quote_special_form(LA1_State *state, LinkedList *arguments);
 Value *la1_let_special_form(LA1_State *state, LinkedList *arguments);
 Value *la1_nil_special_form(LA1_State *state, LinkedList *arguments);
 
+Value *la1_do_special_form(LA1_State *state, LinkedList *arguments);
+
 
 #endif //LATTEMPT_SPECIAL_FORMS_H

@@ -51,27 +51,20 @@ void push_special_forms(LA1_State *state) {
 
     assert(state);
 
-    SpecialFormSymbols *symbols = &state->special_forms;
-
-    symbols->if_symbol = la1_intern(state, "if");
-    symbols->lambda_symbol = la1_intern(state, "lambda");
-    symbols->quote_symbol = la1_intern(state, "quote");
-    symbols->let_symbol = la1_intern(state, "let");
-    symbols->nil_symbol = la1_intern(state, "nil");
-
-    symbols->nil = la1_symbol_into_value(symbols->nil_symbol);
-
     SpecialFormEntry table[SPECIAL_FORM_COUNT] = {
-            {symbols->if_symbol,     la1_if_special_form},
-            {symbols->lambda_symbol, la1_lambda_special_form},
-            {symbols->quote_symbol,  la1_quote_special_form},
-            {symbols->let_symbol,    la1_let_special_form},
-            {symbols->nil_symbol,    la1_nil_special_form},
+            [LA1_SPECIAL_FORM_IF] = {la1_intern(state, "if"), la1_if_special_form},
+            [LA1_SPECIAL_FORM_LAMBDA] = {la1_intern(state, "lambda"), la1_lambda_special_form},
+            [LA1_SPECIAL_FORM_QUOTE] = {la1_intern(state, "quote"), la1_quote_special_form},
+            [LA1_SPECIAL_FORM_LET] = {la1_intern(state, "let"), la1_let_special_form},
+            [LA1_SPECIAL_FORM_DO] = {la1_intern(state, "do"), la1_do_special_form},
+            [LA1_SPECIAL_FORM_NIL] = {la1_intern(state, "nil"), la1_nil_special_form},
     };
 
     assert(sizeof(table) == sizeof(state->special_form_table));
 
     memcpy(state->special_form_table, table, sizeof(table));
+
+    state->nil = la1_symbol_into_value(la1_intern(state, "nil"));
 }
 
 
@@ -116,8 +109,8 @@ Value *la1_eval(LA1_State *state, Value *value) {
 
 Value *eval_symbol(LA1_State *state, KnownSymbol symbol) {
 
-    if (symbol == state->special_forms.nil_symbol) {
-        return state->special_forms.nil;
+    if (symbol == state->nil->content.symbol) {
+        return state->nil;
     }
 
     Value *result;

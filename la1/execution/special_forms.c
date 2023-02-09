@@ -18,7 +18,7 @@ Value *la1_if_special_form(LA1_State *state, LinkedList *arguments) {
 
     Value *predicate_value = la1_eval(state, arguments->content);
 
-    if (predicate_value == state->special_forms.nil) {
+    if (predicate_value == state->nil) {
         return la1_eval(state, arguments->next->next->content);
     } else {
         return la1_eval(state, arguments->next->content);
@@ -107,6 +107,14 @@ Bindings *load_bindings(LA1_State *state, LinkedList *list, unsigned int size) {
 }
 
 Value *la1_nil_special_form(LA1_State *state, LinkedList *arguments) {
+
+    (void) state;
+    (void) arguments;
+
+    die("Illegal attempt to call to nil.");
+}
+
+Value *la1_do_special_form(LA1_State *state, LinkedList *arguments) {
 
     (void) state;
     (void) arguments;

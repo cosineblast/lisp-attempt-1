@@ -45,8 +45,8 @@ Value *realize_symbol_or_nil(LA1_State *state, char *input_symbol) {
 
     KnownSymbol symbol = la1_intern(state, input_symbol);
 
-    if (symbol == state->special_forms.nil_symbol) {
-        return state->special_forms.nil;
+    if (symbol == state->nil->content.symbol) {
+        return state->nil;
     } else {
         return la1_symbol_into_value(symbol);
     }
