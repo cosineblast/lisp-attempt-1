@@ -7,7 +7,7 @@
 
 value: literal | list | ticked-value
 
-literal: symbol | number | string-literal
+literal: symbol | number
 
 ticked-value: tick value
 
@@ -17,6 +17,6 @@ opt_values: values | ''
 
 values: value values | value
 
-terminals: symbol, tick, string-literal, '(', ')'
+terminals: symbol, tick, number, '(', ')'
 
 ```
