@@ -32,6 +32,11 @@ ParseValue *la1_parse_value_from_stdin() {
 
 ParseValue *parse_value(LexerState *state) {
 
+    if (state->current_token.type == LEXER_NO_TOKEN) {
+        fprintf(stderr, "EOF\n");
+        exit(0);
+    }
+
     assert(state->current_token.type != LEXER_NO_TOKEN);
 
     switch (state->current_token.type) {

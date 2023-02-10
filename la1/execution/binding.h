@@ -25,9 +25,11 @@ struct Bindings {
     Binding *content;
     size_t size;
     size_t capacity;
+    unsigned int reference_count;
 };
 
 typedef struct Bindings Bindings;
+
 
 Bindings *la1_bindings_create();
 
@@ -36,6 +38,10 @@ Bindings *la1_bindings_create_with_capacity(size_t capacity);
 void la1_bindings_add(Bindings *bindings, KnownSymbol key, Value *value);
 
 int la1_bindings_lookup(Bindings *bindings, KnownSymbol key, Value **result);
+
+void la1_bindings_increment_ref(LinkedList *node);
+
+void la1_bindings_decrement_ref(LinkedList *node);
 
 typedef struct {
     LinkedList *list;

@@ -7,20 +7,55 @@
 #include "binding.h"
 #include "../common/alloc.h"
 
+#include <stdlib.h>
 
 Bindings *la1_bindings_create() {
     Bindings *bindings = la1_malloc(sizeof(*bindings));
     bindings->content = NULL;
     bindings->size = 0;
     bindings->capacity = 0;
+    bindings->reference_count = 1;
     return bindings;
 }
+
+
+void la1_bindings_increment_ref(LinkedList *node) {
+
+    if (node != NULL) {
+        Bindings *binding = node->content;
+
+        binding->reference_count += 1;
+    }
+}
+
+
+void la1_bindings_decrement_ref(LinkedList *node) {
+
+    if (node != NULL) {
+        Bindings *binding = node->content;
+
+        assert(binding->reference_count >= 1);
+
+        if (binding->reference_count == 1) {
+            LinkedList *next = node->next;
+
+            free(binding->content);
+            free(binding);
+            free(node);
+            la1_bindings_decrement_ref(next);
+        } else {
+            binding->reference_count -= 1;
+        }
+    }
+}
+
 
 Bindings *la1_bindings_create_with_capacity(size_t capacity) {
     Bindings *bindings = la1_malloc(sizeof(*bindings));
     bindings->content = la1_malloc(capacity * sizeof(Binding));
     bindings->size = 0;
     bindings->capacity = capacity;
+    bindings->reference_count = 1;
     return bindings;
 }
 
@@ -87,5 +122,12 @@ int la1_binding_stack_lookup(BindingStack *stack, KnownSymbol key, Value **resul
 }
 
 void la1_binding_stack_pop(BindingStack *stack) {
-    stack->list = stack->list->next;
+
+    LinkedList *head = stack->list;
+    LinkedList *next = head->next;
+
+    la1_bindings_increment_ref(next);
+    la1_bindings_decrement_ref(head);
+
+    stack->list = next;
 }

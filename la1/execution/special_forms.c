@@ -36,11 +36,7 @@ Value *la1_quote_special_form(LA1_State *state, LinkedList *arguments) {
 
     (void) state;
 
-    unsigned int size = la1_find_list_size(arguments);
-
-    if (size != 1) {
-        la1_die("quote: Expected 1 arguments.");
-    }
+    la1_expect_size(arguments, 1);
 
     return arguments->content;
 }
@@ -139,9 +135,8 @@ Value *la1_lambda_special_form(LA1_State *state, LinkedList *lambda_arguments) {
     DataClosure *data_closure = la1_malloc(sizeof(*data_closure));
     data_closure->parameters = get_function_parameters(lambda_arguments->content);
 
-    // todo: this is a hack to get the environment quickly.
-    //  when you start implementing garbage collection and other stuff,
-    //  you will need to make this more clever
+    la1_bindings_increment_ref(state->binding_stack->list);
+
     data_closure->environment = state->binding_stack->list;
     data_closure->body_source = lambda_arguments->next->content;
 
