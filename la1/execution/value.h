@@ -9,7 +9,6 @@
 #include "binding.h"
 
 struct Value;
-
 typedef struct Value Value;
 
 struct LA1_State;
@@ -30,12 +29,17 @@ typedef struct {
     void *extra;
 } Closure;
 
+#define LA1_VALUE_TYPE_X() \
+    X(NUMBER) \
+    X(LIST) \
+    X(SYMBOL) \
+    X(CLOSURE) \
+
 
 enum ValueType {
-    LA1_VALUE_NUMBER,
-    LA1_VALUE_LIST,
-    LA1_VALUE_SYMBOL,
-    LA1_VALUE_CLOSURE,
+#define X(name) LA1_VALUE_##name,
+    LA1_VALUE_TYPE_X()
+#undef X
 };
 
 typedef enum ValueType ValueType;
@@ -53,6 +57,8 @@ struct Value {
     ValueType type;
     UntaggedValue content;
 };
+
+const char *la1_get_type_name(ValueType type);
 
 Value *la1_list_into_value(LinkedList *value);
 

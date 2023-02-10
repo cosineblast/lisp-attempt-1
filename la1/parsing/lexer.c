@@ -13,7 +13,7 @@
 #define OK 0
 #define END 1
 
-static int is_space(int current);
+static int is_space(int character);
 
 static int lex_ws();
 
@@ -79,7 +79,7 @@ int la1_lex(LexerState *state) {
     }
 
     fprintf(stderr, "Unrecognized token character %c\n", current);
-    die("Sytnax Error");
+    la1_die("Sytnax Error");
 }
 
 

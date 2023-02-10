@@ -7,11 +7,19 @@
 
 #include "value.h"
 
-Value *la1_builtin_list(LA1_State *state, LinkedList *arguments, void *);
+#define LA1_BUILTIN_FUNCTION_X() \
+    X(list, "list") \
+    X(cons, "cons") \
+    X(plus, "+") \
 
-Value *la1_builtin_cons(LA1_State *state, LinkedList *arguments, void *);
 
-Value *la1_builtin_plus(LA1_State *state, LinkedList *arguments, void *);
+
+#define X(name, symbol) \
+    Value *la1_builtin_##name(LA1_State *state, LinkedList *arguments, void *);
+
+LA1_BUILTIN_FUNCTION_X()
+
+#undef X
 
 
 #endif //LATTEMPT_BUILTIN_H

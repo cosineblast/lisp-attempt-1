@@ -22,10 +22,6 @@ Value *eval_symbol(LA1_State *p_state, KnownSymbol symbol);
 
 void initialize_prelude(LA1_State *p_state);
 
-Value *eval_function_call(LA1_State *state, LinkedList *arguments);
-
-Value *apply_symbol(LA1_State *state, const LinkedList *arguments, KnownSymbol symbol);
-
 LinkedList *evaluate_children(LA1_State *state, struct LinkedList *list);
 
 LA1_State *la1_create_la1_state() {
@@ -55,9 +51,9 @@ void initialize_prelude(LA1_State *state) {
         ClosureFunction *function;
     } builtin_functions[]
             = {
-                    {la1_intern(state, "cons"), la1_builtin_cons},
-                    {la1_intern(state, "list"), la1_builtin_list},
-                    {la1_intern(state, "+"),    la1_builtin_plus}
+#define X(name, symbol) {la1_intern(state, symbol), la1_builtin_##name},
+                    LA1_BUILTIN_FUNCTION_X()
+#undef X
             };
 
     for (int i = 0; i < sizeof(builtin_functions) / sizeof(builtin_functions[0]); i++) {
@@ -125,10 +121,10 @@ Value *la1_eval(LA1_State *state, Value *value) {
             return eval_symbol(state, value->content.symbol);
 
         case LA1_VALUE_CLOSURE:
-            die("not implemented");
+            la1_die("not implemented");
     }
 
-    die("Not implemented");
+    la1_die("Not implemented");
 
 }
 
@@ -157,10 +153,10 @@ Value *eval_symbol(LA1_State *state, KnownSymbol symbol) {
         return result;
     }
 
-    die("Symbol not found.");
+    la1_die_format("Symbol %s not found.\n", (char *) symbol);
 }
 
-Value *apply(LA1_State *state, LinkedList *arguments);
+Value *apply(LA1_State *state, LinkedList *call);
 
 Value *eval_list(LA1_State *state, LinkedList *list) {
 
@@ -171,7 +167,7 @@ Value *eval_list(LA1_State *state, LinkedList *list) {
     Value *first_element = list->content;
 
     if (first_element->type == LA1_VALUE_NUMBER) {
-        die("Cannot call number");
+        la1_die("Cannot call number");
     }
 
     Value *result;
@@ -211,7 +207,7 @@ Value *apply(LA1_State *state, LinkedList *call) {
     Value *target_value = call->content;
 
     if (target_value->type != LA1_VALUE_CLOSURE) {
-        die("Cannot apply non-closure value.");
+        la1_die("Cannot apply non-closure value.");
     }
 
     Closure *closure = target_value->content.closure;
@@ -219,24 +215,13 @@ Value *apply(LA1_State *state, LinkedList *call) {
     return closure->function(state, call->next, closure->extra);
 }
 
-Value *apply_symbol(LA1_State *state, const LinkedList *arguments, KnownSymbol symbol) {
-    Value *result;
-
-    if (lookup_variable(state, symbol, &result)) {
-        if (result->type != LA1_VALUE_CLOSURE) {
-            die("Tried to call uncallable type");
-        }
-
-        Closure *closure = result->content.closure;
-
-        return closure->function(state, arguments->next, closure->extra);
-    } else {
-        die("No closure associated with variable");
-    }
-}
-
 Value *la1_apply_data(LA1_State *state, DataClosure *closure, LinkedList *arguments) {
-    die("Apply not implemented");
+
+    (void) state;
+    (void) closure;
+    (void) arguments;
+
+    la1_die("Apply not implemented");
 }
 
 int try_eval_special_form(LA1_State *state, LinkedList *list, Value **result) {

@@ -3,13 +3,19 @@
 //
 
 #include "builtin.h"
-#include "../common/die.h"
 
 Value *la1_builtin_list(LA1_State *state, LinkedList *arguments, void *extra) {
+
+    (void) state;
+    (void) extra;
+
     return la1_list_into_value(arguments);
 }
 
 Value *la1_builtin_cons(LA1_State *state, LinkedList *arguments, void *extra) {
+
+    (void) state;
+    (void) extra;
 
     la1_expect_size(arguments, 2);
 
@@ -21,6 +27,9 @@ Value *la1_builtin_cons(LA1_State *state, LinkedList *arguments, void *extra) {
 }
 
 Value *la1_builtin_plus(LA1_State *state, LinkedList *arguments, void *extra) {
+
+    (void) state;
+    (void) extra;
 
     long result = 0;
 

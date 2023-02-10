@@ -35,7 +35,7 @@ void display_value(Value *value) {
             break;
 
         case LA1_VALUE_SYMBOL:
-            printf("%s", value->content.symbol);
+            printf("%s", (char *) value->content.symbol);
             break;
 
         case LA1_VALUE_CLOSURE:
@@ -89,7 +89,11 @@ Closure *la1_create_closure(ClosureFunction *function, void *extra) {
 void la1_expect_type(Value *value, ValueType type) {
 
     if (value->type != type) {
-        die("Unexpected type");
+        la1_die_format(
+                "Expected type %s, got %s",
+                la1_get_type_name(type),
+                la1_get_type_name(value->type)
+        );
     }
 
 }
@@ -97,9 +101,20 @@ void la1_expect_type(Value *value, ValueType type) {
 void la1_expect_size(LinkedList *list, unsigned int size) {
 
     if (la1_find_list_size(list) != size) {
-        die("Wrong number of arguments");
+        la1_die("Wrong number of arguments");
     }
 
+}
+
+const char *la1_get_type_name(ValueType type) {
+
+    switch (type) {
+#define X(name) case LA1_VALUE_##name: return #name;
+        LA1_VALUE_TYPE_X()
+#undef X
+        default:
+            la1_die("Unknown type name.");
+    }
 }
 
 

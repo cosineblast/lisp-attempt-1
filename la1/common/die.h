@@ -5,6 +5,12 @@
 #ifndef LATTEMPT_DIE_H
 #define LATTEMPT_DIE_H
 
-void __attribute__((noreturn)) die(const char * message);
+#include "../execution/value.h"
+
+void __attribute__((noreturn)) la1_die(const char *message);
+
+void __attribute__((noreturn)) la1_die_format(const char *format, ...);
+
+void __attribute__((noreturn)) la1_die_display(const char *message, Value *value);
 
 #endif //LATTEMPT_DIE_H

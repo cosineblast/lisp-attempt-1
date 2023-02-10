@@ -16,7 +16,7 @@ Value *la1_if_special_form(LA1_State *state, LinkedList *arguments) {
     unsigned int size = la1_find_list_size(arguments);
 
     if (size != 3) {
-        die("if: Expected 3 arguments");
+        la1_die("if: Expected 3 arguments");
     }
 
     Value *predicate_value = la1_eval(state, arguments->content);
@@ -36,7 +36,7 @@ Value *la1_quote_special_form(LA1_State *state, LinkedList *arguments) {
     unsigned int size = la1_find_list_size(arguments);
 
     if (size != 1) {
-        die("quote: Expected 1 arguments.");
+        la1_die("quote: Expected 1 arguments.");
     }
 
     return arguments->content;
@@ -47,19 +47,19 @@ Value *la1_let_special_form(LA1_State *state, LinkedList *arguments) {
     unsigned int size = la1_find_list_size(arguments);
 
     if (size != 2) {
-        die("let: Expected two arguments.");
+        la1_die("let: Expected two arguments.");
     }
 
     Value *first_argument = arguments->content;
 
     if (first_argument->type != LA1_VALUE_LIST) {
-        die("let: Expected list bindings.");
+        la1_die("let: Expected list bindings.");
     }
 
     unsigned int first_argument_size = la1_find_list_size(first_argument->content.list);
 
     if (first_argument_size % 2 != 0) {
-        die("let: Expected even number of bindings.");
+        la1_die("let: Expected even number of bindings.");
     }
 
     Bindings *bindings = load_bindings(state, first_argument->content.list, first_argument_size);
@@ -73,11 +73,6 @@ Value *la1_let_special_form(LA1_State *state, LinkedList *arguments) {
     return result;
 }
 
-void expect_type(Value *value, ValueType type) {
-    if (value->type != type) {
-        die("Unexpected type");
-    }
-}
 
 Bindings *load_bindings(LA1_State *state, LinkedList *list, unsigned int size) {
 
@@ -88,7 +83,7 @@ Bindings *load_bindings(LA1_State *state, LinkedList *list, unsigned int size) {
     for (LinkedList *current = list; current != NULL; current = current->next->next) {
         Value *value = current->content;
 
-        expect_type(value, LA1_VALUE_SYMBOL);
+        la1_expect_type(value, LA1_VALUE_SYMBOL);
 
         la1_bindings_add(result, value->content.symbol,
                          la1_eval(state, current->next->content));
@@ -102,7 +97,7 @@ Value *la1_nil_special_form(LA1_State *state, LinkedList *arguments) {
     (void) state;
     (void) arguments;
 
-    die("Illegal attempt to call to nil.");
+    la1_die("Illegal attempt to call to nil.");
 }
 
 Value *la1_do_special_form(LA1_State *state, LinkedList *arguments) {
@@ -136,11 +131,7 @@ Value *la1_lambda_special_form(LA1_State *state, LinkedList *lambda_arguments) {
 
     (void) state;
 
-    unsigned int size = la1_find_list_size(lambda_arguments);
-
-    if (size != 2) {
-        die("lambda: Expected 2 lambda_arguments");
-    }
+    la1_expect_size(lambda_arguments, 2);
 
     DataClosure *data_closure = la1_malloc(sizeof(*data_closure));
     data_closure->parameters = get_function_parameters(lambda_arguments);
@@ -162,13 +153,13 @@ Value *la1_lambda_special_form(LA1_State *state, LinkedList *lambda_arguments) {
 LinkedList *get_function_parameters(LinkedList *lambda_arguments) {
     Value *function_arguments = lambda_arguments->content;
 
-    expect_type(function_arguments, LA1_VALUE_LIST);
+    la1_expect_type(function_arguments, LA1_VALUE_LIST);
 
     LinkedList *function_arguments_list = function_arguments->content.list;
 
     for (LinkedList *current = function_arguments_list; current != NULL; current = current->next) {
         Value *arg_name = current->content;
-        expect_type(arg_name, LA1_VALUE_SYMBOL);
+        la1_expect_type(arg_name, LA1_VALUE_SYMBOL);
     }
     return function_arguments_list;
 }

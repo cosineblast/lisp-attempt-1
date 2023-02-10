@@ -12,7 +12,7 @@ struct Value;
 
 typedef struct Value Value;
 
-typedef char * KnownSymbol;
+typedef void *KnownSymbol;
 
 struct Binding {
     KnownSymbol symbol;
