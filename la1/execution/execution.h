@@ -37,8 +37,7 @@ struct LA1_State {
 
     Bindings *global_bindings;
 
-    LinkedList *past_binding_stacks;
-    BindingStack *current_binding_stack;
+    BindingStack *binding_stack;
 
     SpecialFormEntry special_form_table[SPECIAL_FORM_COUNT];
 

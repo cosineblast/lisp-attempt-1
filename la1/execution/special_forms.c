@@ -9,7 +9,7 @@
 
 Bindings *load_bindings(LA1_State *state, LinkedList *p_list, unsigned int size);
 
-LinkedList *get_function_parameters(LinkedList *lambda_arguments);
+LinkedList *get_function_parameters(Value *value);
 
 Value *la1_if_special_form(LA1_State *state, LinkedList *arguments) {
 
@@ -64,11 +64,11 @@ Value *la1_let_special_form(LA1_State *state, LinkedList *arguments) {
 
     Bindings *bindings = load_bindings(state, first_argument->content.list, first_argument_size);
 
-    la1_binding_stack_push(state->current_binding_stack, bindings);
+    la1_binding_stack_push(state->binding_stack, bindings);
 
     Value *result = la1_eval(state, arguments->next->content);
 
-    la1_binding_stack_pop(state->current_binding_stack);
+    la1_binding_stack_pop(state->binding_stack);
 
     return result;
 }
@@ -134,12 +134,12 @@ Value *la1_lambda_special_form(LA1_State *state, LinkedList *lambda_arguments) {
     la1_expect_size(lambda_arguments, 2);
 
     DataClosure *data_closure = la1_malloc(sizeof(*data_closure));
-    data_closure->parameters = get_function_parameters(lambda_arguments);
+    data_closure->parameters = get_function_parameters(lambda_arguments->content);
 
     // todo: this is a hack to get the environment quickly.
     //  when you start implementing garbage collection and other stuff,
     //  you will need to make this more clever
-    data_closure->environment = state->current_binding_stack->list;
+    data_closure->environment = state->binding_stack->list;
     data_closure->body_source = lambda_arguments->next->content;
 
     Closure *result_closure = la1_malloc(sizeof(*data_closure));
@@ -150,16 +150,29 @@ Value *la1_lambda_special_form(LA1_State *state, LinkedList *lambda_arguments) {
 }
 
 
-LinkedList *get_function_parameters(LinkedList *lambda_arguments) {
-    Value *function_arguments = lambda_arguments->content;
+LinkedList *get_function_parameters(Value *value) {
 
-    la1_expect_type(function_arguments, LA1_VALUE_LIST);
+    la1_expect_type(value, LA1_VALUE_LIST);
 
-    LinkedList *function_arguments_list = function_arguments->content.list;
+    LinkedList *parameters = value->content.list;
 
-    for (LinkedList *current = function_arguments_list; current != NULL; current = current->next) {
-        Value *arg_name = current->content;
-        la1_expect_type(arg_name, LA1_VALUE_SYMBOL);
+    if (parameters == NULL) {
+        return NULL;
     }
-    return function_arguments_list;
+
+    Value *first_parameter = parameters->content;
+    la1_expect_type(first_parameter, LA1_VALUE_SYMBOL);
+
+    LinkedList *result = la1_cons(first_parameter->content.symbol, NULL);
+    LinkedList *result_end = result;
+
+    for (LinkedList *current = parameters->next; current != NULL; current = current->next) {
+        Value *parameter = current->content;
+        la1_expect_type(parameter, LA1_VALUE_SYMBOL);
+
+        result_end->next = la1_cons(parameter->content.symbol, NULL);
+        result_end = result_end->next;
+    }
+
+    return result;
 }

@@ -28,10 +28,9 @@ LA1_State *la1_create_la1_state() {
 
     LA1_State *state = la1_malloc(sizeof(*state));
 
-    state->current_binding_stack = la1_binding_stack_create();
+    state->binding_stack = la1_binding_stack_create();
     state->global_bindings = la1_bindings_create();
     state->interned_symbols = la1_empty_list();
-    state->past_binding_stacks = la1_empty_list();
 
     push_special_forms(state);
 
@@ -120,17 +119,14 @@ Value *la1_eval(LA1_State *state, Value *value) {
         case LA1_VALUE_SYMBOL:
             return eval_symbol(state, value->content.symbol);
 
-        case LA1_VALUE_CLOSURE:
-            la1_die("not implemented");
+        default:
+            la1_die("Illegal value in source code.");
     }
-
-    la1_die("Not implemented");
-
 }
 
 static int lookup_variable(LA1_State *state, KnownSymbol symbol, Value **result) {
 
-    if (la1_binding_stack_lookup(state->current_binding_stack, symbol, result)) {
+    if (la1_binding_stack_lookup(state->binding_stack, symbol, result)) {
         return 1;
     }
 
@@ -157,6 +153,10 @@ Value *eval_symbol(LA1_State *state, KnownSymbol symbol) {
 }
 
 Value *apply(LA1_State *state, LinkedList *call);
+
+Bindings *bind_arguments(LinkedList *parameters, LinkedList *p_list_1);
+
+Value *eval_body(LA1_State *state, LinkedList *content);
 
 Value *eval_list(LA1_State *state, LinkedList *list) {
 
@@ -217,11 +217,48 @@ Value *apply(LA1_State *state, LinkedList *call) {
 
 Value *la1_apply_data(LA1_State *state, DataClosure *closure, LinkedList *arguments) {
 
-    (void) state;
-    (void) closure;
-    (void) arguments;
+    la1_expect_size(arguments, la1_find_list_size(closure->parameters));
 
-    la1_die("Apply not implemented");
+    Bindings *bindings = bind_arguments(closure->parameters, arguments);
+
+    LinkedList *previous_environment = state->binding_stack->list;
+
+    state->binding_stack->list = closure->environment;
+
+    la1_binding_stack_push(state->binding_stack, bindings);
+
+    Value *result = la1_eval(state, closure->body_source);
+
+    la1_binding_stack_pop(state->binding_stack);
+
+    state->binding_stack->list = previous_environment;
+
+    return result;
+}
+
+Value *eval_body(LA1_State *state, LinkedList *content) {
+    return la1_do_special_form(state, content);
+}
+
+Bindings *bind_arguments(LinkedList *parameters, LinkedList *arguments) {
+
+    unsigned int count = la1_find_list_size(parameters);
+
+    Bindings *bindings = la1_bindings_create_with_capacity(count);
+
+    LinkedList *parameter = parameters;
+    LinkedList *argument = arguments;
+
+    while (parameter != NULL) {
+        assert(argument != NULL);
+
+        la1_bindings_add(bindings, parameter->content, argument->content);
+
+        parameter = parameter->next;
+        argument = argument->next;
+    }
+
+    return bindings;
 }
 
 int try_eval_special_form(LA1_State *state, LinkedList *list, Value **result) {
