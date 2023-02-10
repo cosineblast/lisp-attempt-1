@@ -74,12 +74,10 @@ void push_special_forms(LA1_State *state) {
     state->nil = la1_symbol_into_value(la1_intern(state, "nil"));
 
     SpecialFormEntry table[SPECIAL_FORM_COUNT] = {
-            [LA1_SPECIAL_FORM_IF] = {la1_intern(state, "if"), la1_if_special_form},
-            [LA1_SPECIAL_FORM_LAMBDA] = {la1_intern(state, "lambda"), la1_lambda_special_form},
-            [LA1_SPECIAL_FORM_QUOTE] = {la1_intern(state, "quote"), la1_quote_special_form},
-            [LA1_SPECIAL_FORM_LET] = {la1_intern(state, "let"), la1_let_special_form},
-            [LA1_SPECIAL_FORM_DO] = {la1_intern(state, "do"), la1_do_special_form},
-            [LA1_SPECIAL_FORM_NIL] = {la1_intern(state, "nil"), la1_nil_special_form},
+
+#define X(name, big) [LA1_SPECIAL_FORM_##big] = {la1_intern(state, #name), la1_##name##_special_form},
+            LA1_SPECIAL_FORM_X()
+#undef X
     };
 
     assert(sizeof(table) == sizeof(state->special_form_table));

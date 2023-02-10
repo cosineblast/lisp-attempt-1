@@ -9,17 +9,9 @@
 #include "value.h"
 #include "../parsing/parse_value.h"
 
-enum SpecialFormType {
-    LA1_SPECIAL_FORM_IF = 0,
-    LA1_SPECIAL_FORM_QUOTE = 1,
-    LA1_SPECIAL_FORM_NIL = 2,
-    LA1_SPECIAL_FORM_LAMBDA = 3,
-    LA1_SPECIAL_FORM_LET = 4,
-    LA1_SPECIAL_FORM_DO = 5,
-};
+#include "special_forms.h"
 
 
-#define SPECIAL_FORM_COUNT 6
 
 struct LA1_State;
 typedef struct LA1_State LA1_State;

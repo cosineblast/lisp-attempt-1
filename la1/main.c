@@ -47,13 +47,16 @@ void test_parser() {
 
 void test_execution() {
 
+
     LA1_State *state = la1_create_la1_state();
 
-    ParseValue *parse_value = la1_parse_value_from_stdin();
+    for (;;) {
+        ParseValue *parse_value = la1_parse_value_from_stdin();
 
-    Value *value = la1_realize_parse_value(state, parse_value);
+        Value *value = la1_realize_parse_value(state, parse_value);
 
-    la1_display_value(la1_eval(state, value));
+        la1_display_value(la1_eval(state, value));
+    }
 
 }
 

@@ -7,6 +7,8 @@
 #include "../common/die.h"
 #include "../common/alloc.h"
 
+#include "execution.h"
+
 Bindings *load_bindings(LA1_State *state, LinkedList *p_list, unsigned int size);
 
 LinkedList *get_function_parameters(Value *value);
@@ -175,4 +177,21 @@ LinkedList *get_function_parameters(Value *value) {
     }
 
     return result;
+}
+
+Value *la1_def_special_form(LA1_State *state, LinkedList *arguments) {
+
+    la1_expect_size(arguments, 2);
+
+    Value *target = arguments->content;
+
+    la1_expect_type(target, LA1_VALUE_SYMBOL);
+
+    Value *source = arguments->next->content;
+
+    Value *result = la1_eval(state, source);
+
+    la1_bindings_add(state->global_bindings, target->content.symbol, result);
+
+    return state->nil;
 }

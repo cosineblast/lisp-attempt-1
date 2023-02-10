@@ -6,18 +6,35 @@
 #define LATTEMPT_SPECIAL_FORMS_H
 
 #include "value.h"
-#include "execution.h"
 
+struct LA1_State;
 
-Value *la1_if_special_form(LA1_State *state, LinkedList *arguments);
+#define LA1_SPECIAL_FORM_X() \
+    X(if, IF) \
+    X(lambda, LAMBDA) \
+    X(quote, QUOTE) \
+    X(let, LET) \
+    X(do, DO) \
+    X(nil, NIL) \
+    X(def, DEF)              \
 
-Value *la1_lambda_special_form(LA1_State *state, LinkedList *lambda_arguments);
+enum {
+    SPECIAL_FORM_COUNT = 0
+                         #define X(name, big) + 1 // NOLINT(bugprone-macro-parentheses)
+                         LA1_SPECIAL_FORM_X()
+#undef X
+};
 
-Value *la1_quote_special_form(LA1_State *state, LinkedList *arguments);
-Value *la1_let_special_form(LA1_State *state, LinkedList *arguments);
-Value *la1_nil_special_form(LA1_State *state, LinkedList *arguments);
+enum SpecialFormType {
+#define X(name, big) LA1_SPECIAL_FORM_##big,
+    LA1_SPECIAL_FORM_X()
+#undef X
+};
 
-Value *la1_do_special_form(LA1_State *state, LinkedList *arguments);
+#define X(name, big) Value *la1_##name##_special_form(LA1_State *state, LinkedList *arguments);
 
+LA1_SPECIAL_FORM_X()
+
+#undef X
 
 #endif //LATTEMPT_SPECIAL_FORMS_H
