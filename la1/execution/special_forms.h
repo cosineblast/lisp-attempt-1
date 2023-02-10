@@ -15,7 +15,6 @@ struct LA1_State;
     X(quote, QUOTE) \
     X(let, LET) \
     X(do, DO) \
-    X(nil, NIL) \
     X(def, DEF)              \
 
 enum {

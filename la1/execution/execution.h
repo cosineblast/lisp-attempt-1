@@ -34,6 +34,8 @@ struct LA1_State {
     SpecialFormEntry special_form_table[SPECIAL_FORM_COUNT];
 
     Value *nil;
+    Value *true_value;
+    Value *false_value;
 };
 
 

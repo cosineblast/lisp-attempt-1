@@ -8,7 +8,7 @@
 
 LinkedList *realize_list(LA1_State *state, LinkedList *p_list);
 
-Value *realize_symbol_or_nil(LA1_State *state, char *input_symbol);
+Value *realize_symbol(LA1_State *state, char *input_symbol);
 
 Value *la1_realize_parse_value(LA1_State *state, ParseValue *value) {
 
@@ -21,7 +21,7 @@ Value *la1_realize_parse_value(LA1_State *state, ParseValue *value) {
             return la1_number_into_value(value->content.number);
 
         case PARSE_VALUE_SYMBOL:
-            return realize_symbol_or_nil(state, value->content.symbol);
+            return realize_symbol(state, value->content.symbol);
     }
 
     abort();
@@ -41,12 +41,16 @@ LinkedList *realize_list(LA1_State *state, LinkedList *list) {
     }
 }
 
-Value *realize_symbol_or_nil(LA1_State *state, char *input_symbol) {
+Value *realize_symbol(LA1_State *state, char *input_symbol) {
 
     KnownSymbol symbol = la1_intern(state, input_symbol);
 
     if (symbol == state->nil->content.symbol) {
         return state->nil;
+    } else if (symbol == state->false_value) {
+        return state->false_value;
+    } else if (symbol == state->true_value) {
+        return state->true_value;
     } else {
         return la1_symbol_into_value(symbol);
     }

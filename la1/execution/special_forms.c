@@ -23,7 +23,8 @@ Value *la1_if_special_form(LA1_State *state, LinkedList *arguments) {
 
     Value *predicate_value = la1_eval(state, arguments->content);
 
-    if (predicate_value == state->nil) {
+    if (predicate_value == state->nil ||
+        predicate_value == state->false_value) {
         return la1_eval(state, arguments->next->next->content);
     } else {
         return la1_eval(state, arguments->next->content);

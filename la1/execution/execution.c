@@ -64,14 +64,19 @@ void initialize_prelude(LA1_State *state) {
         );
     }
 
+    la1_bindings_add(state->global_bindings, state->nil->content.symbol,
+                     state->nil);
 
+    la1_bindings_add(state->global_bindings, state->true_value->content.symbol,
+                     state->true_value);
+
+    la1_bindings_add(state->global_bindings, state->false_value->content.symbol,
+                     state->false_value);
 }
 
 void push_special_forms(LA1_State *state) {
 
     assert(state);
-
-    state->nil = la1_symbol_into_value(la1_intern(state, "nil"));
 
     SpecialFormEntry table[SPECIAL_FORM_COUNT] = {
 
@@ -83,6 +88,10 @@ void push_special_forms(LA1_State *state) {
     assert(sizeof(table) == sizeof(state->special_form_table));
 
     memcpy(state->special_form_table, table, sizeof(table));
+
+    state->nil = la1_symbol_into_value(la1_intern(state, "nil"));
+    state->true_value = la1_symbol_into_value(la1_intern(state, "true"));
+    state->false_value = la1_symbol_into_value(la1_intern(state, "false"));
 }
 
 
