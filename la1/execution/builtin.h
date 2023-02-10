@@ -10,7 +10,13 @@
 #define LA1_BUILTIN_FUNCTION_X() \
     X(list, "list") \
     X(cons, "cons") \
+    X(first, "first") \
+    X(rest, "rest") \
     X(plus, "+") \
+    X(minus, "-") \
+    X(times, "*") \
+    X(equals, "=") \
+    X(emptyp, "empty?") \
 
 
 
