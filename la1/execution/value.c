@@ -7,6 +7,7 @@
 #include "../common/alloc.h"
 #include "../common/die.h"
 #include <stdlib.h>
+#include <assert.h>
 
 
 void display_list_in(LinkedList *list);
@@ -50,39 +51,44 @@ void display_value(Value *value) {
 }
 
 
-Value *la1_list_into_value(LinkedList *value) {
+Value *la1_list_into_value(LA1_State *state, LinkedList *value) {
+    assert(state != NULL);
     Value *result = la1_malloc(sizeof(*result));
     result->content.list = value;
     result->type = LA1_VALUE_LIST;
     return result;
 }
 
-Value *la1_number_into_value(long value) {
+Value *la1_number_into_value(LA1_State *state, long value) {
+    assert(state != NULL);
     Value *result = la1_malloc(sizeof(*result));
     result->content.number = value;
     result->type = LA1_VALUE_NUMBER;
     return result;
 }
 
-Value *la1_symbol_into_value(KnownSymbol value) {
+Value *la1_symbol_into_value(LA1_State *state, KnownSymbol symbol) {
+    assert(state != NULL);
     Value *result = la1_malloc(sizeof(*result));
-    result->content.symbol = value;
+    result->content.symbol = symbol;
     result->type = LA1_VALUE_SYMBOL;
     return result;
 }
 
-Value *la1_closure_into_value(Closure *closure) {
+Value *la1_closure_into_value(LA1_State *state, Closure *closure) {
+    assert(state != NULL);
     Value *result = la1_malloc(sizeof(*result));
     result->content.closure = closure;
     result->type = LA1_VALUE_CLOSURE;
     return result;
 }
 
-Closure *la1_create_closure(ClosureFunction *function, void *extra) {
+Closure *la1_create_c_closure(ClosureFunction *function, void *extra) {
 
     Closure *result = la1_malloc(sizeof(*result));
     result->function = function;
     result->extra = extra;
+    result->type = CLOSURE_TYPE_C;
     return result;
 }
 

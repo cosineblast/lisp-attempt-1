@@ -17,7 +17,7 @@ Value *la1_builtin_list(LA1_State *state, LinkedList *arguments, void *extra) {
     (void) state;
     (void) extra;
 
-    return la1_list_into_value(arguments);
+    return la1_list_into_value(state, arguments);
 }
 
 Value *la1_builtin_cons(LA1_State *state, LinkedList *arguments, void *extra) {
@@ -31,7 +31,7 @@ Value *la1_builtin_cons(LA1_State *state, LinkedList *arguments, void *extra) {
 
     la1_expect_type(list, LA1_VALUE_LIST);
 
-    return la1_list_into_value(la1_cons(arguments->content, list->content.list));
+    return la1_list_into_value(state, la1_cons(arguments->content, list->content.list));
 }
 
 Value *la1_builtin_first(LA1_State *state, LinkedList *arguments, void *extra) {
@@ -66,13 +66,12 @@ Value *la1_builtin_rest(LA1_State *state, LinkedList *arguments, void *extra) {
     if (list->content.list == NULL) {
         return state->nil;
     } else {
-        return la1_list_into_value(list->content.list->next);
+        return la1_list_into_value(state, list->content.list->next);
     }
 }
 
 Value *la1_builtin_plus(LA1_State *state, LinkedList *arguments, void *extra) {
 
-    (void) state;
     (void) extra;
 
     long result = 0;
@@ -90,7 +89,7 @@ Value *la1_builtin_plus(LA1_State *state, LinkedList *arguments, void *extra) {
         current = current->next;
     }
 
-    return la1_number_into_value(result);
+    return la1_number_into_value(state, result);
 }
 
 Value *la1_builtin_minus(LA1_State *state, LinkedList *arguments, void *extra) {
@@ -109,11 +108,11 @@ Value *la1_builtin_minus(LA1_State *state, LinkedList *arguments, void *extra) {
 
         la1_expect_type(value, LA1_VALUE_NUMBER);
 
-        return la1_number_into_value(-(value->content.number));
+        return la1_number_into_value(state, -(value->content.number));
     } else {
         long result = accumulate_minus(arguments);
 
-        return la1_number_into_value(result);
+        return la1_number_into_value(state, result);
     }
 }
 
@@ -155,7 +154,7 @@ Value *la1_builtin_times(LA1_State *state, LinkedList *arguments, void *extra) {
         current = current->next;
     }
 
-    return la1_number_into_value(result);
+    return la1_number_into_value(state, result);
 }
 
 Value *la1_builtin_equals(LA1_State *state, LinkedList *arguments, void *extra) {

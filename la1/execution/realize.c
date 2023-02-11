@@ -15,10 +15,10 @@ Value *la1_realize_parse_value(LA1_State *state, ParseValue *value) {
     switch (value->type) {
 
         case PARSE_VALUE_LIST:
-            return la1_list_into_value(realize_list(state, value->content.list));
+            return la1_list_into_value(state, realize_list(state, value->content.list));
 
         case PARSE_VALUE_NUMBER:
-            return la1_number_into_value(value->content.number);
+            return la1_number_into_value(state, value->content.number);
 
         case PARSE_VALUE_SYMBOL:
             return realize_symbol(state, value->content.symbol);
@@ -52,6 +52,6 @@ Value *realize_symbol(LA1_State *state, char *input_symbol) {
     } else if (symbol == state->true_value) {
         return state->true_value;
     } else {
-        return la1_symbol_into_value(symbol);
+        return la1_symbol_into_value(state, symbol);
     }
 }

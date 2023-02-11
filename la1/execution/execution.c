@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include <string.h>
+#include <stdlib.h>
 
 void push_special_forms(LA1_State *p_state);
 
@@ -31,6 +32,8 @@ LA1_State *la1_create_la1_state() {
     state->binding_stack = la1_binding_stack_create();
     state->global_bindings = la1_bindings_create();
     state->interned_symbols = la1_empty_list();
+    state->past_stacks = NULL;
+    state->gc_values = NULL;
 
     push_special_forms(state);
 
@@ -39,8 +42,8 @@ LA1_State *la1_create_la1_state() {
     return state;
 }
 
-static Value *closure_for(ClosureFunction *function) {
-    return la1_closure_into_value(la1_create_closure(function, NULL));
+static Value *closure_for(LA1_State *state, ClosureFunction *function) {
+    return la1_closure_into_value(state, la1_create_c_closure(function, NULL));
 }
 
 void initialize_prelude(LA1_State *state) {
@@ -60,7 +63,7 @@ void initialize_prelude(LA1_State *state) {
         la1_bindings_add(
                 state->global_bindings,
                 builtin_functions[i].symbol,
-                closure_for(builtin_functions[i].function)
+                closure_for(state, builtin_functions[i].function)
         );
     }
 
@@ -89,9 +92,9 @@ void push_special_forms(LA1_State *state) {
 
     memcpy(state->special_form_table, table, sizeof(table));
 
-    state->nil = la1_symbol_into_value(la1_intern(state, "nil"));
-    state->true_value = la1_symbol_into_value(la1_intern(state, "true"));
-    state->false_value = la1_symbol_into_value(la1_intern(state, "false"));
+    state->nil = la1_symbol_into_value(state, la1_intern(state, "nil"));
+    state->true_value = la1_symbol_into_value(state, la1_intern(state, "true"));
+    state->false_value = la1_symbol_into_value(state, la1_intern(state, "false"));
 }
 
 
@@ -168,7 +171,7 @@ Value *eval_body(LA1_State *state, LinkedList *content);
 Value *eval_list(LA1_State *state, LinkedList *list) {
 
     if (list == NULL) {
-        return la1_list_into_value(NULL);
+        return la1_list_into_value(state, NULL);
     }
 
     Value *first_element = list->content;
@@ -222,15 +225,27 @@ Value *apply(LA1_State *state, LinkedList *call) {
     return closure->function(state, call->next, closure->extra);
 }
 
+void set_binding_stack(LA1_State *state, LinkedList *new_list) {
+    state->past_stacks = la1_cons(state->binding_stack, state->past_stacks);
+    state->binding_stack->list = new_list;
+}
+
+void restore_binding_stack(LA1_State *state) {
+    LinkedList *current = state->past_stacks;
+
+    state->binding_stack->list = current->content;
+    state->past_stacks = current->next;
+
+    free(current);
+}
+
 Value *la1_apply_data(LA1_State *state, DataClosure *closure, LinkedList *arguments) {
 
     la1_expect_size(arguments, la1_find_list_size(closure->parameters));
 
     Bindings *bindings = bind_arguments(closure->parameters, arguments);
 
-    LinkedList *previous_environment = state->binding_stack->list;
-
-    state->binding_stack->list = closure->environment;
+    set_binding_stack(state, closure->environment);
 
     la1_binding_stack_push(state->binding_stack, bindings);
 
@@ -238,13 +253,11 @@ Value *la1_apply_data(LA1_State *state, DataClosure *closure, LinkedList *argume
 
     la1_binding_stack_pop(state->binding_stack);
 
-    state->binding_stack->list = previous_environment;
+    assert(state->binding_stack->list == closure->environment);
+
+    restore_binding_stack(state);
 
     return result;
-}
-
-Value *eval_body(LA1_State *state, LinkedList *content) {
-    return la1_do_special_form(state, content);
 }
 
 Bindings *bind_arguments(LinkedList *parameters, LinkedList *arguments) {

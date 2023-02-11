@@ -24,10 +24,14 @@ typedef struct {
 } SpecialFormEntry;
 
 struct LA1_State {
-    // target type: char*
+    // target type: KnownSymbol
     LinkedList *interned_symbols;
 
     Bindings *global_bindings;
+
+    LinkedList *past_stacks;
+
+    LinkedList *gc_values;
 
     BindingStack *binding_stack;
 

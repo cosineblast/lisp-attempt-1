@@ -24,9 +24,17 @@ typedef struct DataClosure DataClosure;
 
 typedef Value *ClosureFunction(LA1_State *state, LinkedList *parameters, void *extra);
 
+enum ClosureType {
+    CLOSURE_TYPE_C,
+    CLOSURE_TYPE_DATA
+};
+
+typedef enum ClosureType ClosureType;
+
 typedef struct {
     ClosureFunction *function;
     void *extra;
+    ClosureType type;
 } Closure;
 
 #define LA1_VALUE_TYPE_X() \
@@ -55,20 +63,21 @@ typedef union UntaggedValue UntaggedValue;
 
 struct Value {
     ValueType type;
+    int gc_tag;
     UntaggedValue content;
 };
 
 const char *la1_get_type_name(ValueType type);
 
-Value *la1_list_into_value(LinkedList *value);
+Value *la1_list_into_value(LA1_State *state, LinkedList *value);
 
-Value *la1_number_into_value(long value);
+Value *la1_number_into_value(LA1_State *state, long value);
 
-Value *la1_symbol_into_value(KnownSymbol symbol);
+Value *la1_symbol_into_value(LA1_State *state, KnownSymbol symbol);
 
-Closure *la1_create_closure(ClosureFunction *function, void *extra);
+Closure *la1_create_c_closure(ClosureFunction *function, void *extra);
 
-Value *la1_closure_into_value(Closure *closure);
+Value *la1_closure_into_value(LA1_State *state, Closure *closure);
 
 void la1_expect_type(Value *value, ValueType type);
 
