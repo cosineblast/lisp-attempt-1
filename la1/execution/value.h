@@ -22,12 +22,10 @@ struct DataClosure {
 
 typedef struct DataClosure DataClosure;
 
-typedef Value *ClosureFunction(LA1_State *state, LinkedList *parameters, void *extra);
+typedef Value *ClosureFunction(LA1_State *state, LinkedList *parameters,
+                               void *extra);
 
-enum ClosureType {
-    CLOSURE_TYPE_C,
-    CLOSURE_TYPE_DATA
-};
+enum ClosureType { CLOSURE_TYPE_C, CLOSURE_TYPE_DATA };
 
 typedef enum ClosureType ClosureType;
 
@@ -38,11 +36,10 @@ typedef struct {
 } Closure;
 
 #define LA1_VALUE_TYPE_X() \
-    X(NUMBER) \
-    X(LIST) \
-    X(SYMBOL) \
-    X(CLOSURE) \
-
+    X(NUMBER)              \
+    X(LIST)                \
+    X(SYMBOL)              \
+    X(CLOSURE)
 
 enum ValueType {
 #define X(name) LA1_VALUE_##name,
@@ -85,5 +82,4 @@ void la1_expect_size(LinkedList *list, unsigned int size);
 
 void la1_display_value(Value *value);
 
-
-#endif //LATTEMPT_VALUE_H
+#endif  // LATTEMPT_VALUE_H

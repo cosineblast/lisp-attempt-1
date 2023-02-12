@@ -8,17 +8,15 @@
 #include "value.h"
 
 #define LA1_BUILTIN_FUNCTION_X() \
-    X(list, "list") \
-    X(cons, "cons") \
-    X(first, "first") \
-    X(rest, "rest") \
-    X(plus, "+") \
-    X(minus, "-") \
-    X(times, "*") \
-    X(equals, "=") \
-    X(emptyp, "empty?") \
-
-
+    X(list, "list")              \
+    X(cons, "cons")              \
+    X(first, "first")            \
+    X(rest, "rest")              \
+    X(plus, "+")                 \
+    X(minus, "-")                \
+    X(times, "*")                \
+    X(equals, "=")               \
+    X(emptyp, "empty?")
 
 #define X(name, symbol) \
     Value *la1_builtin_##name(LA1_State *state, LinkedList *arguments, void *);
@@ -27,5 +25,4 @@ LA1_BUILTIN_FUNCTION_X()
 
 #undef X
 
-
-#endif //LATTEMPT_BUILTIN_H
+#endif  // LATTEMPT_BUILTIN_H

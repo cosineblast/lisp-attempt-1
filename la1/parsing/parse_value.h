@@ -42,4 +42,4 @@ void la1_dump_parse_value(ParseValue *value);
 
 void la1_free_parse_value(ParseValue *value);
 
-#endif //LATTEMPT_PARSE_VALUE_H
+#endif  // LATTEMPT_PARSE_VALUE_H

@@ -9,4 +9,4 @@
 
 ParseValue *la1_parse_value_from_stdin();
 
-#endif //LATTEMPT_PARSER_H
+#endif  // LATTEMPT_PARSER_H

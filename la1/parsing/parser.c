@@ -3,11 +3,12 @@
 //
 
 #include "parser.h"
-#include "lexer.h"
 
-#include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
+
+#include "lexer.h"
 
 ParseValue *parse_value(LexerState *pState);
 
@@ -18,7 +19,6 @@ long parse_number(LexerState *p_state);
 char *parse_symbol(LexerState *p_state);
 
 ParseValue *la1_parse_value_from_stdin() {
-
     LexerState *state = la1_create_lexer_state();
 
     la1_lex(state);
@@ -31,7 +31,6 @@ ParseValue *la1_parse_value_from_stdin() {
 }
 
 ParseValue *parse_value(LexerState *state) {
-
     if (state->current_token.type == LEXER_NO_TOKEN) {
         fprintf(stderr, "EOF\n");
         exit(0);
@@ -56,21 +55,18 @@ ParseValue *parse_value(LexerState *state) {
 }
 
 char *parse_symbol(LexerState *state) {
-
     assert(state->current_token.type == LEXER_SYMBOL_TOKEN);
 
     return state->current_token.value.symbol;
 }
 
 long parse_number(LexerState *state) {
-
     assert(state->current_token.type == LEXER_NUMBER_TOKEN);
 
     return state->current_token.value.number;
 }
 
 LinkedList *parse_list(LexerState *state) {
-
     la1_lex(state);
 
     if (state->current_token.type == ')') {
@@ -81,6 +77,3 @@ LinkedList *parse_list(LexerState *state) {
 
     return la1_cons(value, parse_list(state));
 }
-
-
-

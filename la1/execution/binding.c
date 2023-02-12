@@ -2,12 +2,13 @@
 // Created by figurantpp on 09/02/23.
 //
 
-#include <stddef.h>
-#include <assert.h>
 #include "binding.h"
-#include "../common/alloc.h"
 
+#include <assert.h>
+#include <stddef.h>
 #include <stdlib.h>
+
+#include "../common/alloc.h"
 
 Bindings *la1_bindings_create() {
     Bindings *bindings = la1_malloc(sizeof(*bindings));
@@ -18,9 +19,7 @@ Bindings *la1_bindings_create() {
     return bindings;
 }
 
-
 void la1_bindings_increment_ref(LinkedList *node) {
-
     if (node != NULL) {
         Bindings *binding = node->content;
 
@@ -28,9 +27,7 @@ void la1_bindings_increment_ref(LinkedList *node) {
     }
 }
 
-
 void la1_bindings_decrement_ref(LinkedList *node) {
-
     if (node != NULL) {
         Bindings *binding = node->content;
 
@@ -48,7 +45,6 @@ void la1_bindings_decrement_ref(LinkedList *node) {
         }
     }
 }
-
 
 Bindings *la1_bindings_create_with_capacity(size_t capacity) {
     Bindings *bindings = la1_malloc(sizeof(*bindings));
@@ -71,11 +67,11 @@ void la1_bindings_add(Bindings *bindings, KnownSymbol key, Value *value) {
     assert(bindings && key && value);
 
     if (bindings->size >= bindings->capacity) {
-        size_t new_capacity = bindings->capacity == 0
-                              ? DEFAULT_CAPACITY
-                              : 2 * bindings->capacity;
+        size_t new_capacity =
+            bindings->capacity == 0 ? DEFAULT_CAPACITY : 2 * bindings->capacity;
 
-        bindings->content = la1_realloc(bindings->content, new_capacity * sizeof(Binding));
+        bindings->content =
+            la1_realloc(bindings->content, new_capacity * sizeof(Binding));
 
         bindings->capacity = new_capacity;
     }
@@ -103,12 +99,11 @@ void la1_binding_stack_push(BindingStack *stack, Bindings *bindings) {
     stack->list = la1_cons(bindings, stack->list);
 }
 
-int la1_binding_stack_lookup(BindingStack *stack, KnownSymbol key, Value **result) {
-
+int la1_binding_stack_lookup(BindingStack *stack, KnownSymbol key,
+                             Value **result) {
     LinkedList *current = stack->list;
 
     while (current != NULL) {
-
         Bindings *bindings = current->content;
 
         if (la1_bindings_lookup(bindings, key, result)) {
@@ -122,7 +117,6 @@ int la1_binding_stack_lookup(BindingStack *stack, KnownSymbol key, Value **resul
 }
 
 void la1_binding_stack_pop(BindingStack *stack) {
-
     LinkedList *head = stack->list;
     LinkedList *next = head->next;
 

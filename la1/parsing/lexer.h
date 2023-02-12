@@ -8,7 +8,7 @@
 #define LEXER_TOKEN_SYMBOL_LIMIT 256
 
 enum LexerTokenType {
-    LEXER_NO_TOKEN  = 0,
+    LEXER_NO_TOKEN = 0,
     LEXER_OPEN_PARENTHESIS_TOKEN = '(',
     LEXER_CLOSING_PARENTHESIS_TOKEN = ')',
     LEXER_SYMBOL_TOKEN = 300,
@@ -16,7 +16,6 @@ enum LexerTokenType {
 };
 
 typedef enum LexerTokenType LexerTokenType;
-
 
 struct LexerToken {
     LexerTokenType type;
@@ -51,6 +50,4 @@ int la1_lex(LexerState *state);
  */
 void la1_free_lexer_state(LexerState *state);
 
-
-
-#endif //LATTEMPT_LEXER_H
+#endif  // LATTEMPT_LEXER_H

@@ -5,11 +5,10 @@
 #include "alloc.h"
 
 #include <stddef.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 void *la1_malloc(size_t size) {
-
     void *result = malloc(size);
 
     if (result == NULL) {
@@ -21,7 +20,6 @@ void *la1_malloc(size_t size) {
 }
 
 void *la1_realloc(void *buffer, size_t size) {
-
     void *result = realloc(buffer, size);
 
     if (result == NULL) {

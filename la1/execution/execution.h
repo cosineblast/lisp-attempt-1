@@ -6,12 +6,9 @@
 #define LATTEMPT_EXECUTION_H
 
 #include "../common/list.h"
-#include "value.h"
 #include "../parsing/parse_value.h"
-
 #include "special_forms.h"
-
-
+#include "value.h"
 
 struct LA1_State;
 typedef struct LA1_State LA1_State;
@@ -42,7 +39,6 @@ struct LA1_State {
     Value *false_value;
 };
 
-
 LA1_State *la1_create_la1_state();
 
 Value *la1_realize_parse_value(LA1_State *state, ParseValue *value);
@@ -51,7 +47,7 @@ KnownSymbol la1_intern(LA1_State *state, const char *symbol);
 
 Value *la1_eval(LA1_State *state, Value *value);
 
-Value *la1_apply_data(LA1_State *state, DataClosure *closure, LinkedList *arguments);
+Value *la1_apply_data(LA1_State *state, DataClosure *closure,
+                      LinkedList *arguments);
 
-
-#endif //LATTEMPT_EXECUTION_H
+#endif  // LATTEMPT_EXECUTION_H

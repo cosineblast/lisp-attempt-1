@@ -11,6 +11,7 @@ void __attribute__((noreturn)) la1_die(const char *message);
 
 void __attribute__((noreturn)) la1_die_format(const char *format, ...);
 
-void __attribute__((noreturn)) la1_die_display(const char *message, Value *value);
+void __attribute__((noreturn))
+la1_die_display(const char *message, Value *value);
 
-#endif //LATTEMPT_DIE_H
+#endif  // LATTEMPT_DIE_H

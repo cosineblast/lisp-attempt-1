@@ -19,4 +19,4 @@ LinkedList *la1_empty_list();
 
 unsigned int la1_find_list_size(LinkedList *list);
 
-#endif //LATTEMPT_LIST_H
+#endif  // LATTEMPT_LIST_H

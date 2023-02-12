@@ -5,8 +5,9 @@
 #ifndef LATTEMPT_BINDING_H
 #define LATTEMPT_BINDING_H
 
-#include "../common/list.h"
 #include <stddef.h>
+
+#include "../common/list.h"
 
 struct Value;
 
@@ -30,7 +31,6 @@ struct Bindings {
 
 typedef struct Bindings Bindings;
 
-
 Bindings *la1_bindings_create();
 
 Bindings *la1_bindings_create_with_capacity(size_t capacity);
@@ -53,6 +53,7 @@ void la1_binding_stack_push(BindingStack *stack, Bindings *bindings);
 
 void la1_binding_stack_pop(BindingStack *stack);
 
-int la1_binding_stack_lookup(BindingStack *stack, KnownSymbol key, Value **result);
+int la1_binding_stack_lookup(BindingStack *stack, KnownSymbol key,
+                             Value **result);
 
-#endif //LATTEMPT_BINDING_H
+#endif  // LATTEMPT_BINDING_H

@@ -2,13 +2,14 @@
 // Created by figurantpp on 09/02/23.
 //
 
-#include <stdio.h>
 #include "value.h"
+
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+
 #include "../common/alloc.h"
 #include "../common/die.h"
-#include <stdlib.h>
-#include <assert.h>
-
 
 void display_list_in(LinkedList *list);
 
@@ -17,16 +18,13 @@ void display_list(LinkedList *list);
 void display_value(Value *value);
 
 void la1_display_value(Value *value) {
-
     display_value(value);
 
     printf("\n");
-
 }
 
 void display_value(Value *value) {
     switch (value->type) {
-
         case LA1_VALUE_LIST:
             display_list(value->content.list);
             break;
@@ -36,7 +34,7 @@ void display_value(Value *value) {
             break;
 
         case LA1_VALUE_SYMBOL:
-            printf("%s", (char *) value->content.symbol);
+            printf("%s", (char *)value->content.symbol);
             break;
 
         case LA1_VALUE_CLOSURE:
@@ -49,7 +47,6 @@ void display_value(Value *value) {
             abort();
     }
 }
-
 
 Value *la1_list_into_value(LA1_State *state, LinkedList *value) {
     assert(state != NULL);
@@ -84,7 +81,6 @@ Value *la1_closure_into_value(LA1_State *state, Closure *closure) {
 }
 
 Closure *la1_create_c_closure(ClosureFunction *function, void *extra) {
-
     Closure *result = la1_malloc(sizeof(*result));
     result->function = function;
     result->extra = extra;
@@ -93,29 +89,23 @@ Closure *la1_create_c_closure(ClosureFunction *function, void *extra) {
 }
 
 void la1_expect_type(Value *value, ValueType type) {
-
     if (value->type != type) {
-        la1_die_format(
-                "Expected type %s, got %s",
-                la1_get_type_name(type),
-                la1_get_type_name(value->type)
-        );
+        la1_die_format("Expected type %s, got %s", la1_get_type_name(type),
+                       la1_get_type_name(value->type));
     }
-
 }
 
 void la1_expect_size(LinkedList *list, unsigned int size) {
-
     if (la1_find_list_size(list) != size) {
         la1_die("Wrong number of arguments");
     }
-
 }
 
 const char *la1_get_type_name(ValueType type) {
-
     switch (type) {
-#define X(name) case LA1_VALUE_##name: return #name;
+#define X(name)            \
+    case LA1_VALUE_##name: \
+        return #name;
         LA1_VALUE_TYPE_X()
 #undef X
         default:
@@ -123,9 +113,7 @@ const char *la1_get_type_name(ValueType type) {
     }
 }
 
-
 void display_list(LinkedList *list) {
-
     if (list == NULL) {
         printf("()");
     } else {
@@ -135,17 +123,13 @@ void display_list(LinkedList *list) {
         display_list_in(list->next);
         printf(")");
     }
-
 }
 
 void display_list_in(LinkedList *list) {
-
     if (list != NULL) {
         display_value(list->content);
 
         printf(" ");
         display_list_in(list->next);
     }
-
 }
-

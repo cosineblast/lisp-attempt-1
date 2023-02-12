@@ -16,4 +16,4 @@ void *la1_malloc(size_t size);
 
 void *la1_realloc(void *, size_t size);
 
-#endif //LATTEMPT_ALLOC_H
+#endif  // LATTEMPT_ALLOC_H

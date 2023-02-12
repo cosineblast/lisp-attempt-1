@@ -3,17 +3,21 @@
 //
 
 #include "execution.h"
-#include "../common/alloc.h"
-#include "special_forms.h"
-#include "../common/die.h"
-#include "builtin.h"
 
 #include <assert.h>
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
+
+#include "../common/alloc.h"
+#include "../common/die.h"
+#include "builtin.h"
+#include "special_forms.h"
+
+/*
+
+*/
 
 void push_special_forms(LA1_State *p_state);
-
 
 int try_eval_special_form(LA1_State *state, LinkedList *list, Value **result);
 
@@ -26,7 +30,6 @@ void initialize_prelude(LA1_State *p_state);
 LinkedList *evaluate_children(LA1_State *state, struct LinkedList *list);
 
 LA1_State *la1_create_la1_state() {
-
     LA1_State *state = la1_malloc(sizeof(*state));
 
     state->binding_stack = la1_binding_stack_create();
@@ -47,24 +50,19 @@ static Value *closure_for(LA1_State *state, ClosureFunction *function) {
 }
 
 void initialize_prelude(LA1_State *state) {
-
     struct {
         KnownSymbol symbol;
         ClosureFunction *function;
-    } builtin_functions[]
-            = {
+    } builtin_functions[] = {
 #define X(name, symbol) {la1_intern(state, symbol), la1_builtin_##name},
-                    LA1_BUILTIN_FUNCTION_X()
+        LA1_BUILTIN_FUNCTION_X()
 #undef X
-            };
+    };
 
-    for (int i = 0; i < sizeof(builtin_functions) / sizeof(builtin_functions[0]); i++) {
-
-        la1_bindings_add(
-                state->global_bindings,
-                builtin_functions[i].symbol,
-                closure_for(state, builtin_functions[i].function)
-        );
+    for (int i = 0;
+         i < sizeof(builtin_functions) / sizeof(builtin_functions[0]); i++) {
+        la1_bindings_add(state->global_bindings, builtin_functions[i].symbol,
+                         closure_for(state, builtin_functions[i].function));
     }
 
     la1_bindings_add(state->global_bindings, state->nil->content.symbol,
@@ -78,13 +76,14 @@ void initialize_prelude(LA1_State *state) {
 }
 
 void push_special_forms(LA1_State *state) {
-
     assert(state);
 
     SpecialFormEntry table[SPECIAL_FORM_COUNT] = {
 
-#define X(name, big) [LA1_SPECIAL_FORM_##big] = {la1_intern(state, #name), la1_##name##_special_form},
-            LA1_SPECIAL_FORM_X()
+#define X(name, big)     \
+    [LA1_SPECIAL_FORM_## \
+        big] = {la1_intern(state, #name), la1_##name##_special_form},
+        LA1_SPECIAL_FORM_X()
 #undef X
     };
 
@@ -94,12 +93,11 @@ void push_special_forms(LA1_State *state) {
 
     state->nil = la1_symbol_into_value(state, la1_intern(state, "nil"));
     state->true_value = la1_symbol_into_value(state, la1_intern(state, "true"));
-    state->false_value = la1_symbol_into_value(state, la1_intern(state, "false"));
+    state->false_value =
+        la1_symbol_into_value(state, la1_intern(state, "false"));
 }
 
-
 KnownSymbol la1_intern(LA1_State *state, const char *symbol) {
-
     LinkedList *current = state->interned_symbols;
 
     while (current != NULL) {
@@ -116,7 +114,6 @@ KnownSymbol la1_intern(LA1_State *state, const char *symbol) {
 }
 
 Value *la1_eval(LA1_State *state, Value *value) {
-
     assert(state && value);
 
     switch (value->type) {
@@ -134,8 +131,8 @@ Value *la1_eval(LA1_State *state, Value *value) {
     }
 }
 
-static int lookup_variable(LA1_State *state, KnownSymbol symbol, Value **result) {
-
+static int lookup_variable(LA1_State *state, KnownSymbol symbol,
+                           Value **result) {
     if (la1_binding_stack_lookup(state->binding_stack, symbol, result)) {
         return 1;
     }
@@ -148,7 +145,6 @@ static int lookup_variable(LA1_State *state, KnownSymbol symbol, Value **result)
 }
 
 Value *eval_symbol(LA1_State *state, KnownSymbol symbol) {
-
     if (symbol == state->nil->content.symbol) {
         return state->nil;
     }
@@ -159,7 +155,7 @@ Value *eval_symbol(LA1_State *state, KnownSymbol symbol) {
         return result;
     }
 
-    la1_die_format("Symbol %s not found.\n", (char *) symbol);
+    la1_die_format("Symbol %s not found.\n", (char *)symbol);
 }
 
 Value *apply(LA1_State *state, LinkedList *call);
@@ -169,7 +165,6 @@ Bindings *bind_arguments(LinkedList *parameters, LinkedList *p_list_1);
 Value *eval_body(LA1_State *state, LinkedList *content);
 
 Value *eval_list(LA1_State *state, LinkedList *list) {
-
     if (list == NULL) {
         return la1_list_into_value(state, NULL);
     }
@@ -189,9 +184,7 @@ Value *eval_list(LA1_State *state, LinkedList *list) {
     }
 }
 
-
 LinkedList *evaluate_children(LA1_State *state, struct LinkedList *list) {
-
     if (list == NULL) {
         return NULL;
     }
@@ -202,8 +195,8 @@ LinkedList *evaluate_children(LA1_State *state, struct LinkedList *list) {
     LinkedList *result_end = result;
 
     while (current_argument != NULL) {
-
-        result_end->next = la1_cons(la1_eval(state, current_argument->content), NULL);
+        result_end->next =
+            la1_cons(la1_eval(state, current_argument->content), NULL);
         result_end = result_end->next;
 
         current_argument = current_argument->next;
@@ -213,7 +206,6 @@ LinkedList *evaluate_children(LA1_State *state, struct LinkedList *list) {
 }
 
 Value *apply(LA1_State *state, LinkedList *call) {
-
     Value *target_value = call->content;
 
     if (target_value->type != LA1_VALUE_CLOSURE) {
@@ -239,8 +231,8 @@ void restore_binding_stack(LA1_State *state) {
     free(current);
 }
 
-Value *la1_apply_data(LA1_State *state, DataClosure *closure, LinkedList *arguments) {
-
+Value *la1_apply_data(LA1_State *state, DataClosure *closure,
+                      LinkedList *arguments) {
     la1_expect_size(arguments, la1_find_list_size(closure->parameters));
 
     Bindings *bindings = bind_arguments(closure->parameters, arguments);
@@ -261,7 +253,6 @@ Value *la1_apply_data(LA1_State *state, DataClosure *closure, LinkedList *argume
 }
 
 Bindings *bind_arguments(LinkedList *parameters, LinkedList *arguments) {
-
     unsigned int count = la1_find_list_size(parameters);
 
     Bindings *bindings = la1_bindings_create_with_capacity(count);
@@ -282,7 +273,6 @@ Bindings *bind_arguments(LinkedList *parameters, LinkedList *arguments) {
 }
 
 int try_eval_special_form(LA1_State *state, LinkedList *list, Value **result) {
-
     assert(state && list && result);
     Value *first_value = list->content;
 
@@ -294,7 +284,6 @@ int try_eval_special_form(LA1_State *state, LinkedList *list, Value **result) {
 
     for (int i = 0; i < SPECIAL_FORM_COUNT; i++) {
         if (state->special_form_table[i].symbol == symbol) {
-
             *result = state->special_form_table[i].function(state, list->next);
             return 1;
         }
