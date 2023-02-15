@@ -10,130 +10,129 @@
 #include "../common/die.h"
 #include "execution.h"
 
-Bindings *load_bindings(LA1_State *state, LinkedList *p_list,
+Bindings *load_bindings(LA1_State *state, ConsCell *p_list,
                         unsigned int size);
 
 LinkedList *get_function_parameters(Value *value);
 
-Value *la1_if_special_form(LA1_State *state, LinkedList *arguments) {
-    unsigned int size = la1_find_list_size(arguments);
+Value *la1_if_special_form(LA1_State *state, ConsCell *arguments) {
 
-    if (size != 3) {
-        la1_die("if: Expected 3 arguments");
-    }
+    la1_expect_size(arguments, 3);
 
-    Value *predicate_value = la1_eval(state, arguments->content);
+    ConsCell *on_true = la1_cons_next(arguments);
+    ConsCell *on_false = la1_cons_next(on_true);
+
+    Value *predicate_value = la1_eval(state, arguments->item);
 
     if (predicate_value == state->nil ||
         predicate_value == state->false_value) {
-        return la1_eval(state, arguments->next->next->content);
+
+        return la1_eval(state, on_false->item);
     } else {
-        return la1_eval(state, arguments->next->content);
+        return la1_eval(state, on_true->item);
     }
 }
 
-Value *la1_quote_special_form(LA1_State *state, LinkedList *arguments) {
-    (void)state;
+Value *la1_quote_special_form(LA1_State *state, ConsCell *arguments) {
+    (void) state;
 
     la1_expect_size(arguments, 1);
 
-    return arguments->content;
+    return arguments->item;
 }
 
-Value *la1_let_special_form(LA1_State *state, LinkedList *arguments) {
-    unsigned int size = la1_find_list_size(arguments);
+Value *la1_let_special_form(LA1_State *state, ConsCell *arguments) {
 
-    if (size != 2) {
-        la1_die("let: Expected two arguments.");
-    }
+    la1_expect_size(arguments, 2);
 
-    Value *first_argument = arguments->content;
+    Value *first_argument = arguments->item;
 
-    if (first_argument->type != LA1_VALUE_LIST) {
+    if (first_argument->type != LA1_VALUE_CONS) {
         la1_die("let: Expected list bindings.");
     }
 
     unsigned int first_argument_size =
-        la1_find_list_size(first_argument->content.list);
+            la1_find_cons_list_size(first_argument->content.cons);
 
     if (first_argument_size % 2 != 0) {
         la1_die("let: Expected even number of bindings.");
     }
 
     Bindings *bindings =
-        load_bindings(state, first_argument->content.list, first_argument_size);
+            load_bindings(state, first_argument->content.cons, first_argument_size);
 
     la1_binding_stack_push(state->binding_stack, bindings);
 
-    Value *result = la1_eval(state, arguments->next->content);
+    Value *result = la1_eval(state, la1_cons_next(arguments)->item);
 
     la1_binding_stack_pop(state->binding_stack);
 
     return result;
 }
 
-Bindings *load_bindings(LA1_State *state, LinkedList *list, unsigned int size) {
+Bindings *load_bindings(LA1_State *state, ConsCell *list, unsigned int size) {
     assert(size % 2 == 0);
 
     Bindings *result = la1_bindings_create_with_capacity(size);
 
-    for (LinkedList *current = list; current != NULL;
-         current = current->next->next) {
-        Value *value = current->content;
+    for (ConsCell *current = list; current != NULL;
+         current = la1_cons_next(la1_cons_next(current))) {
+
+        Value *value = current->item;
 
         la1_expect_type(value, LA1_VALUE_SYMBOL);
 
         la1_bindings_add(result, value->content.symbol,
-                         la1_eval(state, current->next->content));
+                         la1_eval(state, la1_cons_next(current)->item));
     }
 
     return result;
 }
 
-Value *la1_nil_special_form(LA1_State *state, LinkedList *arguments) {
-    (void)state;
-    (void)arguments;
+Value *la1_nil_special_form(LA1_State *state, ConsCell *arguments) {
+    (void) state;
+    (void) arguments;
 
     la1_die("Illegal attempt to call to nil.");
 }
 
-Value *la1_do_special_form(LA1_State *state, LinkedList *arguments) {
-    (void)state;
-    (void)arguments;
+Value *la1_do_special_form(LA1_State *state, ConsCell *arguments) {
+    (void) state;
+    (void) arguments;
 
     Value *result = state->nil;
 
-    LinkedList *current = arguments;
+    ConsCell *current = arguments;
 
     while (current != NULL) {
-        result = la1_eval(state, current->content);
+        result = la1_eval(state, current->item);
 
-        current = current->next;
+        current = la1_cons_next(current);
     }
 
     return result;
 }
 
-static Value *apply_closure_function(LA1_State *state, LinkedList *arguments,
+static Value *apply_closure_function(LA1_State *state, ConsCell *arguments,
                                      void *extra) {
     DataClosure *data_closure = extra;
 
     return la1_apply_data(state, data_closure, arguments);
 }
 
-Value *la1_lambda_special_form(LA1_State *state, LinkedList *lambda_arguments) {
-    (void)state;
+Value *la1_lambda_special_form(LA1_State *state, ConsCell *lambda_arguments) {
+    (void) state;
 
     la1_expect_size(lambda_arguments, 2);
 
     DataClosure *data_closure = la1_malloc(sizeof(*data_closure));
     data_closure->parameters =
-        get_function_parameters(lambda_arguments->content);
+            get_function_parameters(lambda_arguments->item);
 
     la1_bindings_increment_ref(state->binding_stack->list);
 
     data_closure->environment = state->binding_stack->list;
-    data_closure->body_source = lambda_arguments->next->content;
+    data_closure->body_source = la1_cons_next(lambda_arguments)->item;
 
     Closure *result_closure = la1_malloc(sizeof(*data_closure));
     result_closure->extra = data_closure;
@@ -144,40 +143,41 @@ Value *la1_lambda_special_form(LA1_State *state, LinkedList *lambda_arguments) {
 }
 
 LinkedList *get_function_parameters(Value *value) {
-    la1_expect_type(value, LA1_VALUE_LIST);
+    la1_expect_type(value, LA1_VALUE_CONS);
 
-    LinkedList *parameters = value->content.list;
+    ConsCell *parameters = value->content.cons;
 
     if (parameters == NULL) {
         return NULL;
     }
 
-    Value *first_parameter = parameters->content;
+    Value *first_parameter = parameters->item;
     la1_expect_type(first_parameter, LA1_VALUE_SYMBOL);
 
-    LinkedList *result = la1_cons(first_parameter->content.symbol, NULL);
+    LinkedList *result = la1_list(first_parameter->content.symbol, NULL);
     LinkedList *result_end = result;
 
-    for (LinkedList *current = parameters->next; current != NULL;
-         current = current->next) {
-        Value *parameter = current->content;
+    for (ConsCell *current = la1_cons_next(parameters); current != NULL;
+         current = la1_cons_next(current)) {
+
+        Value *parameter = current->item;
         la1_expect_type(parameter, LA1_VALUE_SYMBOL);
 
-        result_end->next = la1_cons(parameter->content.symbol, NULL);
+        result_end->next = la1_list(parameter->content.symbol, NULL);
         result_end = result_end->next;
     }
 
     return result;
 }
 
-Value *la1_def_special_form(LA1_State *state, LinkedList *arguments) {
+Value *la1_def_special_form(LA1_State *state, ConsCell *arguments) {
     la1_expect_size(arguments, 2);
 
-    Value *target = arguments->content;
+    Value *target = arguments->item;
 
     la1_expect_type(target, LA1_VALUE_SYMBOL);
 
-    Value *source = arguments->next->content;
+    Value *source = la1_cons_next(arguments)->item;
 
     Value *result = la1_eval(state, source);
 

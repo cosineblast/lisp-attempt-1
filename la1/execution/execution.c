@@ -19,15 +19,15 @@
 
 void push_special_forms(LA1_State *p_state);
 
-int try_eval_special_form(LA1_State *state, LinkedList *list, Value **result);
+int try_eval_special_form(LA1_State *state, ConsCell *list, Value **result);
 
-Value *eval_list(LA1_State *p_state, LinkedList *p_list);
+Value *eval_list(LA1_State *state, ConsCell *list);
 
 Value *eval_symbol(LA1_State *p_state, KnownSymbol symbol);
 
 void initialize_prelude(LA1_State *p_state);
 
-LinkedList *evaluate_children(LA1_State *state, struct LinkedList *list);
+ConsCell *evaluate_children(LA1_State *state, ConsCell *list);
 
 LA1_State *la1_create_la1_state() {
     LA1_State *state = la1_malloc(sizeof(*state));
@@ -36,7 +36,6 @@ LA1_State *la1_create_la1_state() {
     state->global_bindings = la1_bindings_create();
     state->interned_symbols = la1_empty_list();
     state->past_stacks = NULL;
-    state->gc_values = NULL;
 
     push_special_forms(state);
 
@@ -101,16 +100,16 @@ KnownSymbol la1_intern(LA1_State *state, const char *symbol) {
     LinkedList *current = state->interned_symbols;
 
     while (current != NULL) {
-        if (strcmp(symbol, current->content) == 0) {
-            return current->content;
+        if (strcmp(symbol, current->item) == 0) {
+            return current->item;
         }
 
         current = current->next;
     }
 
-    state->interned_symbols = la1_cons(strdup(symbol), state->interned_symbols);
+    state->interned_symbols = la1_list(strdup(symbol), state->interned_symbols);
 
-    return state->interned_symbols->content;
+    return state->interned_symbols->item;
 }
 
 Value *la1_eval(LA1_State *state, Value *value) {
@@ -120,8 +119,8 @@ Value *la1_eval(LA1_State *state, Value *value) {
         case LA1_VALUE_NUMBER:
             return value;
 
-        case LA1_VALUE_LIST:
-            return eval_list(state, value->content.list);
+        case LA1_VALUE_CONS:
+            return eval_list(state, value->content.cons);
 
         case LA1_VALUE_SYMBOL:
             return eval_symbol(state, value->content.symbol);
@@ -158,18 +157,16 @@ Value *eval_symbol(LA1_State *state, KnownSymbol symbol) {
     la1_die_format("Symbol %s not found.\n", (char *)symbol);
 }
 
-Value *apply(LA1_State *state, LinkedList *call);
+Value *apply(LA1_State *state, ConsCell *call);
 
-Bindings *bind_arguments(LinkedList *parameters, LinkedList *p_list_1);
+Bindings *bind_arguments(LinkedList *parameters, ConsCell *arguments);
 
-Value *eval_body(LA1_State *state, LinkedList *content);
-
-Value *eval_list(LA1_State *state, LinkedList *list) {
+Value *eval_list(LA1_State *state, ConsCell *list) {
     if (list == NULL) {
-        return la1_list_into_value(state, NULL);
+        return la1_cons_into_value(state, NULL);
     }
 
-    Value *first_element = list->content;
+    Value *first_element = list->item;
 
     if (first_element->type == LA1_VALUE_NUMBER) {
         la1_die("Cannot call number");
@@ -180,33 +177,42 @@ Value *eval_list(LA1_State *state, LinkedList *list) {
     if (try_eval_special_form(state, list, &result)) {
         return result;
     } else {
+
         return apply(state, evaluate_children(state, list));
     }
 }
 
-LinkedList *evaluate_children(LA1_State *state, struct LinkedList *list) {
+ConsCell *evaluate_children(LA1_State *state, ConsCell *list) {
     if (list == NULL) {
         return NULL;
     }
 
-    LinkedList *result = la1_cons(la1_eval(state, list->content), NULL);
+    Value *empty_list = la1_cons_into_value(state, NULL);
 
-    LinkedList *current_argument = list->next;
-    LinkedList *result_end = result;
+    ConsCell *result = la1_cons(la1_eval(state, list->item),
+                                empty_list);
+
+    ConsCell *current_argument = la1_cons_next(list);
+    ConsCell *result_end = result;
 
     while (current_argument != NULL) {
         result_end->next =
-            la1_cons(la1_eval(state, current_argument->content), NULL);
-        result_end = result_end->next;
+                la1_cons_into_value(
+                        state,
+                        la1_cons(
+                                la1_eval(state, current_argument->item),
+                                empty_list));
 
-        current_argument = current_argument->next;
+        result_end = la1_cons_next(result_end);
+
+        current_argument = la1_cons_next(current_argument);
     }
 
     return result;
 }
 
-Value *apply(LA1_State *state, LinkedList *call) {
-    Value *target_value = call->content;
+Value *apply(LA1_State *state, ConsCell *call) {
+    Value *target_value = call->item;
 
     if (target_value->type != LA1_VALUE_CLOSURE) {
         la1_die("Cannot apply non-closure value.");
@@ -214,25 +220,25 @@ Value *apply(LA1_State *state, LinkedList *call) {
 
     Closure *closure = target_value->content.closure;
 
-    return closure->function(state, call->next, closure->extra);
+    return closure->function(state, la1_cons_next(call), closure->extra);
 }
 
 void set_binding_stack(LA1_State *state, LinkedList *new_list) {
-    state->past_stacks = la1_cons(state->binding_stack, state->past_stacks);
+    state->past_stacks = la1_list(state->binding_stack->list, state->past_stacks);
     state->binding_stack->list = new_list;
 }
 
 void restore_binding_stack(LA1_State *state) {
     LinkedList *current = state->past_stacks;
 
-    state->binding_stack->list = current->content;
+    state->binding_stack->list = current->item;
     state->past_stacks = current->next;
 
     free(current);
 }
 
 Value *la1_apply_data(LA1_State *state, DataClosure *closure,
-                      LinkedList *arguments) {
+                      ConsCell *arguments) {
     la1_expect_size(arguments, la1_find_list_size(closure->parameters));
 
     Bindings *bindings = bind_arguments(closure->parameters, arguments);
@@ -252,29 +258,29 @@ Value *la1_apply_data(LA1_State *state, DataClosure *closure,
     return result;
 }
 
-Bindings *bind_arguments(LinkedList *parameters, LinkedList *arguments) {
+Bindings *bind_arguments(LinkedList *parameters, ConsCell *arguments) {
     unsigned int count = la1_find_list_size(parameters);
 
     Bindings *bindings = la1_bindings_create_with_capacity(count);
 
     LinkedList *parameter = parameters;
-    LinkedList *argument = arguments;
+    ConsCell *argument = arguments;
 
     while (parameter != NULL) {
         assert(argument != NULL);
 
-        la1_bindings_add(bindings, parameter->content, argument->content);
+        la1_bindings_add(bindings, parameter->item, argument->item);
 
         parameter = parameter->next;
-        argument = argument->next;
+        argument = la1_cons_next(argument);
     }
 
     return bindings;
 }
 
-int try_eval_special_form(LA1_State *state, LinkedList *list, Value **result) {
+int try_eval_special_form(LA1_State *state, ConsCell *list, Value **result) {
     assert(state && list && result);
-    Value *first_value = list->content;
+    Value *first_value = list->item;
 
     if (first_value->type != LA1_VALUE_SYMBOL) {
         return 0;
@@ -284,7 +290,7 @@ int try_eval_special_form(LA1_State *state, LinkedList *list, Value **result) {
 
     for (int i = 0; i < SPECIAL_FORM_COUNT; i++) {
         if (state->special_form_table[i].symbol == symbol) {
-            *result = state->special_form_table[i].function(state, list->next);
+            *result = state->special_form_table[i].function(state, la1_cons_next(list));
             return 1;
         }
     }

@@ -7,98 +7,106 @@
 #include "../common/die.h"
 #include "execution.h"
 
-int equals(Value *p_value, Value *p_value_1);
+int equals(Value *left, Value *right);
 
-int list_equals(LinkedList *p_list, LinkedList *p_list_1);
+int list_equals(ConsCell *left, ConsCell *right);
 
-long accumulate_minus(LinkedList *arguments);
+long accumulate_minus(ConsCell *arguments);
 
-Value *la1_builtin_list(LA1_State *state, LinkedList *arguments, void *extra) {
-    (void)state;
-    (void)extra;
+Value *la1_builtin_list(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void) state;
+    (void) extra;
 
-    return la1_list_into_value(state, arguments);
+    // todo: improve this
+    // right now we are creating a new value because
+    // there is already an existing to-be-collected value
+    // pointing at arguments, but functions can't access it.
+
+    ConsCell *result = la1_cons(arguments->item, arguments->next);
+
+    return la1_cons_into_value(state, result);
 }
 
-Value *la1_builtin_cons(LA1_State *state, LinkedList *arguments, void *extra) {
-    (void)state;
-    (void)extra;
+Value *la1_builtin_cons(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void) state;
+    (void) extra;
 
     la1_expect_size(arguments, 2);
 
-    Value *list = arguments->next->content;
+    Value *value = arguments->item;
+    Value *list = la1_cons_next(arguments)->item;
 
-    la1_expect_type(list, LA1_VALUE_LIST);
+    la1_expect_type(list, LA1_VALUE_CONS);
 
-    return la1_list_into_value(
-        state, la1_cons(arguments->content, list->content.list));
+    return la1_cons_into_value(
+            state, la1_cons(value, list));
 }
 
-Value *la1_builtin_first(LA1_State *state, LinkedList *arguments, void *extra) {
-    (void)state;
-    (void)extra;
+Value *la1_builtin_first(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void) state;
+    (void) extra;
 
     la1_expect_size(arguments, 1);
 
-    Value *list = arguments->content;
+    Value *list = arguments->item;
 
-    la1_expect_type(list, LA1_VALUE_LIST);
+    la1_expect_type(list, LA1_VALUE_CONS);
 
-    if (list->content.list == NULL) {
+    if (list->content.cons == NULL) {
         return state->nil;
     } else {
-        return list->content.list->content;
+        return list->content.cons->item;
     }
 }
 
-Value *la1_builtin_rest(LA1_State *state, LinkedList *arguments, void *extra) {
-    (void)state;
-    (void)extra;
+Value *la1_builtin_rest(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void) state;
+    (void) extra;
 
     la1_expect_size(arguments, 1);
 
-    Value *list = arguments->content;
+    Value *list = arguments->item;
 
-    la1_expect_type(list, LA1_VALUE_LIST);
+    la1_expect_type(list, LA1_VALUE_CONS);
 
-    if (list->content.list == NULL) {
+    if (list->content.cons == NULL) {
         return state->nil;
     } else {
-        return la1_list_into_value(state, list->content.list->next);
+        return list->content.cons->next;
     }
 }
 
-Value *la1_builtin_plus(LA1_State *state, LinkedList *arguments, void *extra) {
-    (void)extra;
+Value *la1_builtin_plus(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void) extra;
 
     long result = 0;
 
-    LinkedList *current = arguments;
+    ConsCell *current = arguments;
 
     while (current != NULL) {
-        Value *value = current->content;
+        Value *value = current->item;
 
         la1_expect_type(value, LA1_VALUE_NUMBER);
 
         result += value->content.number;
 
-        current = current->next;
+        current = la1_cons_next(current);
     }
 
     return la1_number_into_value(state, result);
 }
 
-Value *la1_builtin_minus(LA1_State *state, LinkedList *arguments, void *extra) {
-    (void)state;
-    (void)extra;
+Value *la1_builtin_minus(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void) state;
+    (void) extra;
 
-    unsigned int size = la1_find_list_size(arguments);
+    unsigned int size = la1_find_cons_list_size(arguments);
 
     if (size == 0) {
         la1_die("minus: Expected at least one argument");
     }
     if (size == 1) {
-        Value *value = arguments->content;
+        Value *value = arguments->item;
 
         la1_expect_type(value, LA1_VALUE_NUMBER);
 
@@ -110,52 +118,52 @@ Value *la1_builtin_minus(LA1_State *state, LinkedList *arguments, void *extra) {
     }
 }
 
-long accumulate_minus(LinkedList *arguments) {
-    long result = ((Value *)arguments->content)->content.number;
+long accumulate_minus(ConsCell *arguments) {
+    long result = ((Value *) arguments->item)->content.number;
 
-    LinkedList *current = arguments->next;
+    ConsCell *current = la1_cons_next(arguments);
 
     while (current != NULL) {
-        Value *value = current->content;
+        Value *value = current->item;
 
         la1_expect_type(value, LA1_VALUE_NUMBER);
 
         result -= value->content.number;
 
-        current = current->next;
+        current = la1_cons_next(current);
     }
     return result;
 }
 
-Value *la1_builtin_times(LA1_State *state, LinkedList *arguments, void *extra) {
-    (void)state;
-    (void)extra;
+Value *la1_builtin_times(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void) state;
+    (void) extra;
 
     long result = 1;
 
-    LinkedList *current = arguments;
+    ConsCell *current = arguments;
 
     while (current != NULL) {
-        Value *value = current->content;
+        Value *value = current->item;
 
         la1_expect_type(value, LA1_VALUE_NUMBER);
 
         result *= value->content.number;
 
-        current = current->next;
+        current = la1_cons_next(current);
     }
 
     return la1_number_into_value(state, result);
 }
 
-Value *la1_builtin_equals(LA1_State *state, LinkedList *arguments,
+Value *la1_builtin_equals(LA1_State *state, ConsCell *arguments,
                           void *extra) {
-    (void)extra;
+    (void) extra;
 
     la1_expect_size(arguments, 2);
 
-    Value *left_argument = arguments->content;
-    Value *right_argument = arguments->next->content;
+    Value *left_argument = arguments->item;
+    Value *right_argument = la1_cons_next(arguments)->item;
 
     int result = equals(left_argument, right_argument);
 
@@ -171,9 +179,9 @@ int equals(Value *left_value, Value *right_value) {
         case LA1_VALUE_NUMBER:
             return left_value->content.number == right_value->content.number;
 
-        case LA1_VALUE_LIST:
-            return list_equals(left_value->content.list,
-                               right_value->content.list);
+        case LA1_VALUE_CONS:
+            return list_equals(left_value->content.cons,
+                               right_value->content.cons);
 
         case LA1_VALUE_SYMBOL:
             return left_value->content.symbol == right_value->content.symbol;
@@ -185,7 +193,7 @@ int equals(Value *left_value, Value *right_value) {
     return 0;
 }
 
-int list_equals(LinkedList *left, LinkedList *right) {
+int list_equals(ConsCell *left, ConsCell *right) {
     if (left == right) {
         return 1;
     }
@@ -194,23 +202,23 @@ int list_equals(LinkedList *left, LinkedList *right) {
         return 0;
     }
 
-    if (!equals(left->content, right->content)) {
+    if (!equals(left->item, right->item)) {
         return 0;
     }
 
-    return list_equals(left->next, right->next);
+    return list_equals(la1_cons_next(left), la1_cons_next(right));
 }
 
-Value *la1_builtin_emptyp(LA1_State *state, LinkedList *arguments,
+Value *la1_builtin_emptyp(LA1_State *state, ConsCell *arguments,
                           void *extra) {
-    (void)extra;
+    (void) extra;
 
     la1_expect_size(arguments, 1);
 
-    Value *argument = arguments->content;
+    Value *argument = arguments->item;
 
     int result =
-        argument->type == LA1_VALUE_LIST && argument->content.list == NULL;
+            argument->type == LA1_VALUE_CONS && argument->content.cons == NULL;
 
     return result ? state->true_value : state->false_value;
 }

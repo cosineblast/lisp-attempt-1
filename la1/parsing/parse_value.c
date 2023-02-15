@@ -77,7 +77,7 @@ void free_list(LinkedList *list) {
             free(previous);
             previous = current;
 
-            la1_free_parse_value(current->content);
+            la1_free_parse_value(current->item);
         }
 
         free(previous);
@@ -89,7 +89,7 @@ void dump_list(LinkedList *list) {
         printf("()");
     } else {
         printf("( ");
-        la1_dump_parse_value(list->content);
+        la1_dump_parse_value(list->item);
         printf(" . ");
         dump_list(list->next);
         printf(" )");

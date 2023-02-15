@@ -11,9 +11,9 @@
 #include "../common/alloc.h"
 #include "../common/die.h"
 
-void display_list_in(LinkedList *list);
+void display_list_in(ConsCell *list);
 
-void display_list(LinkedList *list);
+void display_list(ConsCell *list);
 
 void display_value(Value *value);
 
@@ -25,8 +25,8 @@ void la1_display_value(Value *value) {
 
 void display_value(Value *value) {
     switch (value->type) {
-        case LA1_VALUE_LIST:
-            display_list(value->content.list);
+        case LA1_VALUE_CONS:
+            display_list(value->content.cons);
             break;
 
         case LA1_VALUE_NUMBER:
@@ -34,7 +34,7 @@ void display_value(Value *value) {
             break;
 
         case LA1_VALUE_SYMBOL:
-            printf("%s", (char *)value->content.symbol);
+            printf("%s", (char *) value->content.symbol);
             break;
 
         case LA1_VALUE_CLOSURE:
@@ -48,11 +48,11 @@ void display_value(Value *value) {
     }
 }
 
-Value *la1_list_into_value(LA1_State *state, LinkedList *value) {
+Value *la1_cons_into_value(LA1_State *state, ConsCell *value) {
     assert(state != NULL);
     Value *result = la1_malloc(sizeof(*result));
-    result->content.list = value;
-    result->type = LA1_VALUE_LIST;
+    result->content.cons = value;
+    result->type = LA1_VALUE_CONS;
     return result;
 }
 
@@ -95,8 +95,8 @@ void la1_expect_type(Value *value, ValueType type) {
     }
 }
 
-void la1_expect_size(LinkedList *list, unsigned int size) {
-    if (la1_find_list_size(list) != size) {
+void la1_expect_size(ConsCell *list, unsigned int size) {
+    if (la1_find_cons_list_size(list) != size) {
         la1_die("Wrong number of arguments");
     }
 }
@@ -113,23 +113,57 @@ const char *la1_get_type_name(ValueType type) {
     }
 }
 
-void display_list(LinkedList *list) {
+ConsCell *la1_cons_next(ConsCell *cell) {
+    la1_expect_type(cell->next, LA1_VALUE_CONS);
+    return cell->next->content.cons;
+}
+
+unsigned int la1_find_cons_list_size(ConsCell *cell) {
+
+    unsigned int result = 0;
+
+    ConsCell *current = cell;
+
+    while (current != NULL) {
+        result += 1;
+        current = la1_cons_next(current);
+    }
+
+    return result;
+}
+
+ConsCell *la1_cons(Value *item, Value *next) {
+
+    assert(item != NULL);
+    assert(next != NULL);
+
+    la1_expect_type(next, LA1_VALUE_CONS);
+
+    ConsCell *cell = la1_malloc(sizeof(*cell));
+    cell->item = item;
+    cell->next = next;
+
+    return cell;
+}
+
+void display_list(ConsCell *list) {
+
     if (list == NULL) {
         printf("()");
     } else {
         printf("( ");
-        display_value(list->content);
+        display_value(list->item);
         printf(" ");
-        display_list_in(list->next);
+        display_list_in(list->next->content.cons);
         printf(")");
     }
 }
 
-void display_list_in(LinkedList *list) {
-    if (list != NULL) {
-        display_value(list->content);
+void display_list_in(ConsCell *node) {
+    if (node != NULL) {
+        display_value(node->item);
 
         printf(" ");
-        display_list_in(list->next);
+        display_list_in(node->next->content.cons);
     }
 }

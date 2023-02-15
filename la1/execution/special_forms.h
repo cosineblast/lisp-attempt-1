@@ -31,7 +31,7 @@ enum SpecialFormType {
 };
 
 #define X(name, big) \
-    Value *la1_##name##_special_form(LA1_State *state, LinkedList *arguments);
+    Value *la1_##name##_special_form(LA1_State *state, ConsCell *arguments);
 
 LA1_SPECIAL_FORM_X()
 

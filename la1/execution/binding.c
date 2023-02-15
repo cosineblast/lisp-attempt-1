@@ -21,7 +21,7 @@ Bindings *la1_bindings_create() {
 
 void la1_bindings_increment_ref(LinkedList *node) {
     if (node != NULL) {
-        Bindings *binding = node->content;
+        Bindings *binding = node->item;
 
         binding->reference_count += 1;
     }
@@ -29,7 +29,7 @@ void la1_bindings_increment_ref(LinkedList *node) {
 
 void la1_bindings_decrement_ref(LinkedList *node) {
     if (node != NULL) {
-        Bindings *binding = node->content;
+        Bindings *binding = node->item;
 
         assert(binding->reference_count >= 1);
 
@@ -68,10 +68,10 @@ void la1_bindings_add(Bindings *bindings, KnownSymbol key, Value *value) {
 
     if (bindings->size >= bindings->capacity) {
         size_t new_capacity =
-            bindings->capacity == 0 ? DEFAULT_CAPACITY : 2 * bindings->capacity;
+                bindings->capacity == 0 ? DEFAULT_CAPACITY : 2 * bindings->capacity;
 
         bindings->content =
-            la1_realloc(bindings->content, new_capacity * sizeof(Binding));
+                la1_realloc(bindings->content, new_capacity * sizeof(Binding));
 
         bindings->capacity = new_capacity;
     }
@@ -96,7 +96,7 @@ int la1_bindings_lookup(Bindings *bindings, KnownSymbol key, Value **result) {
 }
 
 void la1_binding_stack_push(BindingStack *stack, Bindings *bindings) {
-    stack->list = la1_cons(bindings, stack->list);
+    stack->list = la1_list(bindings, stack->list);
 }
 
 int la1_binding_stack_lookup(BindingStack *stack, KnownSymbol key,
@@ -104,7 +104,7 @@ int la1_binding_stack_lookup(BindingStack *stack, KnownSymbol key,
     LinkedList *current = stack->list;
 
     while (current != NULL) {
-        Bindings *bindings = current->content;
+        Bindings *bindings = current->item;
 
         if (la1_bindings_lookup(bindings, key, result)) {
             return 1;

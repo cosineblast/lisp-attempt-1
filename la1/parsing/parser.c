@@ -75,5 +75,5 @@ LinkedList *parse_list(LexerState *state) {
 
     ParseValue *value = parse_value(state);
 
-    return la1_cons(value, parse_list(state));
+    return la1_list(value, parse_list(state));
 }

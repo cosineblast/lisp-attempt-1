@@ -19,7 +19,7 @@
     X(emptyp, "empty?")
 
 #define X(name, symbol) \
-    Value *la1_builtin_##name(LA1_State *state, LinkedList *arguments, void *);
+    Value *la1_builtin_##name(LA1_State *state, ConsCell *arguments, void *);
 
 LA1_BUILTIN_FUNCTION_X()
 

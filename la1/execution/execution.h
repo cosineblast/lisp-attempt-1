@@ -10,10 +10,7 @@
 #include "special_forms.h"
 #include "value.h"
 
-struct LA1_State;
-typedef struct LA1_State LA1_State;
-
-typedef Value *SpecialFormFunction(LA1_State *state, LinkedList *arguments);
+typedef Value *SpecialFormFunction(LA1_State *state, ConsCell *arguments);
 
 typedef struct {
     KnownSymbol symbol;
@@ -27,8 +24,6 @@ struct LA1_State {
     Bindings *global_bindings;
 
     LinkedList *past_stacks;
-
-    LinkedList *gc_values;
 
     BindingStack *binding_stack;
 
@@ -48,6 +43,6 @@ KnownSymbol la1_intern(LA1_State *state, const char *symbol);
 Value *la1_eval(LA1_State *state, Value *value);
 
 Value *la1_apply_data(LA1_State *state, DataClosure *closure,
-                      LinkedList *arguments);
+                      ConsCell *arguments);
 
 #endif  // LATTEMPT_EXECUTION_H
