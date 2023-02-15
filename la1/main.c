@@ -52,7 +52,7 @@ void test_execution() {
 
         la1_free_parse_value(parse_value);
 
-        la1_display_value(la1_eval(state, value));
+        la1_display_value_ln(la1_eval(state, value));
     }
 }
 

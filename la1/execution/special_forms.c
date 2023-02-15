@@ -9,6 +9,7 @@
 #include "../common/alloc.h"
 #include "../common/die.h"
 #include "execution.h"
+#include "gc.h"
 
 Bindings *load_bindings(LA1_State *state, ConsCell *p_list,
                         unsigned int size);
@@ -77,14 +78,15 @@ Bindings *load_bindings(LA1_State *state, ConsCell *list, unsigned int size) {
 
     for (ConsCell *current = list; current != NULL;
          current = la1_cons_next(la1_cons_next(current))) {
-
         Value *value = current->item;
 
         la1_expect_type(value, LA1_VALUE_SYMBOL);
 
         la1_bindings_add(result, value->content.symbol,
-                         la1_eval(state, la1_cons_next(current)->item));
+                         la1_eval_push(state, la1_cons_next(current)->item));
     }
+
+    la1_safe_stack_pop_n(state, size);
 
     return result;
 }
@@ -97,18 +99,24 @@ Value *la1_nil_special_form(LA1_State *state, ConsCell *arguments) {
 }
 
 Value *la1_do_special_form(LA1_State *state, ConsCell *arguments) {
-    (void) state;
-    (void) arguments;
+    (void)state;
+    (void)arguments;
 
     Value *result = state->nil;
 
     ConsCell *current = arguments;
 
+    unsigned int count = 0;
+
     while (current != NULL) {
-        result = la1_eval(state, current->item);
+        result = la1_eval_push(state, current->item);
 
         current = la1_cons_next(current);
+
+        count += 1;
     }
+
+    la1_safe_stack_pop_n(state, count);
 
     return result;
 }

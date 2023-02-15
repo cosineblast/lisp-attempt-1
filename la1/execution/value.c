@@ -10,6 +10,7 @@
 
 #include "../common/alloc.h"
 #include "../common/die.h"
+#include "gc.h"
 
 void display_list_in(ConsCell *list);
 
@@ -17,7 +18,9 @@ void display_list(ConsCell *list);
 
 void display_value(Value *value);
 
-void la1_display_value(Value *value) {
+void la1_display_value(Value *value) { display_value(value); }
+
+void la1_display_value_ln(Value *value) {
     display_value(value);
 
     printf("\n");
@@ -50,34 +53,34 @@ void display_value(Value *value) {
 
 Value *la1_cons_into_value(LA1_State *state, ConsCell *value) {
     assert(state != NULL);
-    Value *result = la1_malloc(sizeof(*result));
-    result->content.cons = value;
-    result->type = LA1_VALUE_CONS;
-    return result;
+    Value result;
+    result.content.cons = value;
+    result.type = LA1_VALUE_CONS;
+    return la1_gc_spawn(state, &result);
 }
 
 Value *la1_number_into_value(LA1_State *state, long value) {
     assert(state != NULL);
-    Value *result = la1_malloc(sizeof(*result));
-    result->content.number = value;
-    result->type = LA1_VALUE_NUMBER;
-    return result;
+    Value result;
+    result.content.number = value;
+    result.type = LA1_VALUE_NUMBER;
+    return la1_gc_spawn(state, &result);
 }
 
 Value *la1_symbol_into_value(LA1_State *state, KnownSymbol symbol) {
     assert(state != NULL);
-    Value *result = la1_malloc(sizeof(*result));
-    result->content.symbol = symbol;
-    result->type = LA1_VALUE_SYMBOL;
-    return result;
+    Value result;
+    result.content.symbol = symbol;
+    result.type = LA1_VALUE_SYMBOL;
+    return la1_gc_spawn(state, &result);
 }
 
 Value *la1_closure_into_value(LA1_State *state, Closure *closure) {
     assert(state != NULL);
-    Value *result = la1_malloc(sizeof(*result));
-    result->content.closure = closure;
-    result->type = LA1_VALUE_CLOSURE;
-    return result;
+    Value result;
+    result.content.closure = closure;
+    result.type = LA1_VALUE_CLOSURE;
+    return la1_gc_spawn(state, &result);
 }
 
 Closure *la1_create_c_closure(ClosureFunction *function, void *extra) {

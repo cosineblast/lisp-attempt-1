@@ -6,6 +6,7 @@
 
 #include "../common/die.h"
 #include "execution.h"
+#include "gc.h"
 
 int equals(Value *left, Value *right);
 
@@ -218,7 +219,17 @@ Value *la1_builtin_emptyp(LA1_State *state, ConsCell *arguments,
     Value *argument = arguments->item;
 
     int result =
-            argument->type == LA1_VALUE_CONS && argument->content.cons == NULL;
+        argument->type == LA1_VALUE_CONS && argument->content.cons == NULL;
 
     return result ? state->true_value : state->false_value;
+}
+
+Value *la1_builtin_gc(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void)extra;
+
+    la1_expect_size(arguments, 0);
+
+    la1_perform_gc(state);
+
+    return state->nil;
 }

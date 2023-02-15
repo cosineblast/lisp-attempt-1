@@ -93,5 +93,6 @@ ConsCell *la1_cons(Value *item, Value *next);
 ConsCell *la1_cons_next(ConsCell *cell);
 
 void la1_display_value(Value *value);
+void la1_display_value_ln(Value *value);
 
 #endif  // LATTEMPT_VALUE_H

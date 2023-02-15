@@ -11,6 +11,7 @@
 #include "../common/alloc.h"
 #include "../common/die.h"
 #include "builtin.h"
+#include "gc.h"
 #include "special_forms.h"
 
 /*
@@ -27,7 +28,7 @@ Value *eval_symbol(LA1_State *p_state, KnownSymbol symbol);
 
 void initialize_prelude(LA1_State *p_state);
 
-ConsCell *evaluate_children(LA1_State *state, ConsCell *list);
+Value *evaluate_children(LA1_State *state, ConsCell *list);
 
 LA1_State *la1_create_la1_state() {
     LA1_State *state = la1_malloc(sizeof(*state));
@@ -36,6 +37,8 @@ LA1_State *la1_create_la1_state() {
     state->global_bindings = la1_bindings_create();
     state->interned_symbols = la1_empty_list();
     state->past_stacks = NULL;
+
+    la1_gc_init(&state->gc);
 
     push_special_forms(state);
 
@@ -130,6 +133,10 @@ Value *la1_eval(LA1_State *state, Value *value) {
     }
 }
 
+Value *la1_eval_push(LA1_State *state, Value *value) {
+    return la1_safe_stack_push(state, la1_eval(state, value));
+}
+
 static int lookup_variable(LA1_State *state, KnownSymbol symbol,
                            Value **result) {
     if (la1_binding_stack_lookup(state->binding_stack, symbol, result)) {
@@ -157,7 +164,7 @@ Value *eval_symbol(LA1_State *state, KnownSymbol symbol) {
     la1_die_format("Symbol %s not found.\n", (char *)symbol);
 }
 
-Value *apply(LA1_State *state, ConsCell *call);
+Value *apply(LA1_State *state, Value *call);
 
 Bindings *bind_arguments(LinkedList *parameters, ConsCell *arguments);
 
@@ -177,41 +184,46 @@ Value *eval_list(LA1_State *state, ConsCell *list) {
     if (try_eval_special_form(state, list, &result)) {
         return result;
     } else {
-
         return apply(state, evaluate_children(state, list));
     }
 }
 
-ConsCell *evaluate_children(LA1_State *state, ConsCell *list) {
+Value *evaluate_children(LA1_State *state, ConsCell *list) {
     if (list == NULL) {
         return NULL;
     }
 
     Value *empty_list = la1_cons_into_value(state, NULL);
 
-    ConsCell *result = la1_cons(la1_eval(state, list->item),
-                                empty_list);
+    ConsCell *result = la1_cons(la1_eval_push(state, list->item), empty_list);
 
     ConsCell *current_argument = la1_cons_next(list);
     ConsCell *result_end = result;
 
+    unsigned int count = 1;
+
     while (current_argument != NULL) {
-        result_end->next =
-                la1_cons_into_value(
-                        state,
-                        la1_cons(
-                                la1_eval(state, current_argument->item),
-                                empty_list));
+        result_end->next = la1_cons_into_value(
+            state,
+            la1_cons(la1_eval_push(state, current_argument->item), empty_list));
 
         result_end = la1_cons_next(result_end);
-
         current_argument = la1_cons_next(current_argument);
+        count += 1;
     }
 
-    return result;
+    Value *result_value = la1_cons_into_value(state, result);
+
+    la1_safe_stack_pop_n(state, count);
+
+    return result_value;
 }
 
-Value *apply(LA1_State *state, ConsCell *call) {
+Value *apply(LA1_State *state, Value *call_value) {
+    assert(call_value->type == LA1_VALUE_CONS);
+
+    ConsCell *call = call_value->content.cons;
+
     Value *target_value = call->item;
 
     if (target_value->type != LA1_VALUE_CLOSURE) {
@@ -220,11 +232,19 @@ Value *apply(LA1_State *state, ConsCell *call) {
 
     Closure *closure = target_value->content.closure;
 
-    return closure->function(state, la1_cons_next(call), closure->extra);
+    la1_safe_stack_push(state, call_value);
+
+    Value *result =
+        closure->function(state, la1_cons_next(call), closure->extra);
+
+    la1_safe_stack_pop(state);
+
+    return result;
 }
 
 void set_binding_stack(LA1_State *state, LinkedList *new_list) {
-    state->past_stacks = la1_list(state->binding_stack->list, state->past_stacks);
+    state->past_stacks =
+        la1_list(state->binding_stack->list, state->past_stacks);
     state->binding_stack->list = new_list;
 }
 
@@ -290,7 +310,13 @@ int try_eval_special_form(LA1_State *state, ConsCell *list, Value **result) {
 
     for (int i = 0; i < SPECIAL_FORM_COUNT; i++) {
         if (state->special_form_table[i].symbol == symbol) {
-            *result = state->special_form_table[i].function(state, la1_cons_next(list));
+            la1_safe_stack_push(state, list->next);
+
+            *result = state->special_form_table[i].function(
+                state, la1_cons_next(list));
+
+            la1_safe_stack_pop(state);
+
             return 1;
         }
     }

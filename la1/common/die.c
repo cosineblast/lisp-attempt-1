@@ -27,7 +27,7 @@ void __attribute__((noreturn))
 la1_die_display(const char *message, Value *value) {
     fprintf(stderr, "error: %s ", message);
 
-    la1_display_value(value);
+    la1_display_value_ln(value);
 
     fprintf(stderr, "\n");
 
