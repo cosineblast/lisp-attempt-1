@@ -5,6 +5,7 @@
 #include "execution.h"
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -39,6 +40,8 @@ static Bindings *bind_arguments(LinkedList *parameters, ConsCell *arguments);
 static void restore_binding_stack(LA1_State *state);
 
 static void set_binding_stack(LA1_State *state, LinkedList *new_list);
+
+static bool try_expand_macro(LA1_State *state, ConsCell *input, Value **output);
 
 LA1_State *la1_create_la1_state() {
     LA1_State *state = la1_malloc(sizeof(*state));
@@ -189,9 +192,41 @@ static Value *eval_list(LA1_State *state, ConsCell *list) {
 
     if (try_eval_special_form(state, list, &result)) {
         return result;
+    } else if (try_expand_macro(state, list, &result)) {
+        return la1_eval(state, result);
     } else {
         return apply(state, evaluate_children(state, list));
     }
+}
+
+static bool try_expand_macro(LA1_State *state, ConsCell *input,
+                             Value **output) {
+    assert(input != NULL);
+
+    Value *first_value = input->item;
+
+    if (first_value->type == LA1_VALUE_SYMBOL) {
+        KnownSymbol symbol = first_value->content.symbol;
+
+        Value *value;
+
+        if (la1_bindings_lookup(state->global_bindings, symbol, &value) &&
+            value->type == LA1_VALUE_CLOSURE &&
+            value->content.closure->is_macro) {
+            Closure *closure = value->content.closure;
+
+            la1_safe_stack_push(state, input->next);
+
+            *output =
+                closure->function(state, la1_cons_next(input), closure->extra);
+
+            la1_safe_stack_pop(state);
+
+            return true;
+        }
+    }
+
+    return false;
 }
 
 int try_eval_special_form(LA1_State *state, ConsCell *list, Value **result) {

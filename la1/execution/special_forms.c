@@ -144,6 +144,7 @@ Value *la1_lambda_special_form(LA1_State *state, ConsCell *lambda_arguments) {
 
     Closure *result_closure = la1_malloc(sizeof(*data_closure));
     result_closure->extra = data_closure;
+    result_closure->is_macro = 0;
     result_closure->function = apply_closure_function;
     result_closure->type = LA1_CLOSURE_DATA;
 
@@ -192,4 +193,14 @@ Value *la1_def_special_form(LA1_State *state, ConsCell *arguments) {
     la1_bindings_add(state->global_bindings, target->content.symbol, result);
 
     return state->nil;
+}
+
+Value *la1_macro_lambda_special_form(LA1_State *state, ConsCell *arguments) {
+    Value *result = la1_lambda_special_form(state, arguments);
+
+    assert(result->type == LA1_VALUE_CLOSURE);
+
+    result->content.closure->is_macro = 1;
+
+    return result;
 }

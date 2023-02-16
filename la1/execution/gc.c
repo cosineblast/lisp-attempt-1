@@ -67,6 +67,11 @@ static void mark_value(Value *value) {
         if (closure->type == LA1_CLOSURE_DATA) {
             DataClosure *data_closure = closure->extra;
             mark_value(data_closure->body_source);
+
+            for (LinkedList *list = data_closure->environment; list;
+                 list = list->next) {
+                mark_bindings(list->item);
+            }
         }
     }
 }

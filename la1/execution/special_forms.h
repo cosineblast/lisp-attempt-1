@@ -9,12 +9,13 @@
 
 struct LA1_State;
 
-#define LA1_SPECIAL_FORM_X() \
-    X(if, IF)                \
-    X(lambda, LAMBDA)        \
-    X(quote, QUOTE)          \
-    X(let, LET)              \
-    X(do, DO)                \
+#define LA1_SPECIAL_FORM_X()      \
+    X(if, IF)                     \
+    X(lambda, LAMBDA)             \
+    X(macro_lambda, MACRO_LAMBDA) \
+    X(quote, QUOTE)               \
+    X(let, LET)                   \
+    X(do, DO)                     \
     X(def, DEF)
 
 enum {

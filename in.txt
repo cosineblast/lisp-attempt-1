@@ -1,0 +1,17 @@
+
+(def defmacro (macro_lambda (name args body)
+ (list (quote def)
+       name
+       (list (quote macro_lambda) args body))
+))
+
+(defmacro defun (name args body)
+ (list (quote def) name
+    (list (quote lambda) args body)
+    )
+ )
+
+ (defun f (x) (+ 1 x))
+
+ (f 10)
+

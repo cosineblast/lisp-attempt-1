@@ -88,6 +88,7 @@ Closure *la1_create_c_closure(ClosureFunction *function, void *extra) {
     result->function = function;
     result->extra = extra;
     result->type = LA1_CLOSURE_C;
+    result->is_macro = 0;
     return result;
 }
 

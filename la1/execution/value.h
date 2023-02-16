@@ -37,6 +37,7 @@ typedef enum ClosureType ClosureType;
 typedef struct {
     ClosureFunction *function;
     void *extra;
+    int is_macro;
     ClosureType type;
 } Closure;
 
