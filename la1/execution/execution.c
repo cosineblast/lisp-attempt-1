@@ -227,6 +227,8 @@ Value *evaluate_children(LA1_State *state, ConsCell *list) {
 
     Value *empty_list = la1_cons_into_value(state, NULL);
 
+    la1_safe_stack_push(state, empty_list);
+
     ConsCell *result = la1_cons(la1_eval_push(state, list->item), empty_list);
 
     ConsCell *current_argument = la1_cons_next(list);
@@ -239,6 +241,8 @@ Value *evaluate_children(LA1_State *state, ConsCell *list) {
             state,
             la1_cons(la1_eval_push(state, current_argument->item), empty_list));
 
+        la1_safe_stack_push(state, result_end->next);
+
         result_end = la1_cons_next(result_end);
         current_argument = la1_cons_next(current_argument);
         count += 1;
@@ -246,7 +250,11 @@ Value *evaluate_children(LA1_State *state, ConsCell *list) {
 
     Value *result_value = la1_cons_into_value(state, result);
 
-    la1_safe_stack_pop_n(state, count);
+    // what? why 2 * count.
+    // if you look at the code, you'll see there are two pushes before the loop
+    // runs, and two pushes on every iteration of the loop, and because count
+    // starts at one, we do two pushes.
+    la1_safe_stack_pop_n(state, 2 * count);
 
     return result_value;
 }
