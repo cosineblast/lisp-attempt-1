@@ -1,8 +1,8 @@
 
-(def defmacro (macro_lambda (name args body)
+(def defmacro (macro-lambda (name args body)
  (list (quote def)
        name
-       (list (quote macro_lambda) args body))
+       (list (quote macro-lambda) args body))
 ))
 
 (defmacro defun (name args body)

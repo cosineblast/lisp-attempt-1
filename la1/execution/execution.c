@@ -65,9 +65,9 @@ static void push_special_forms(LA1_State *state) {
 
     SpecialFormEntry table[SPECIAL_FORM_COUNT] = {
 
-#define X(name, big)     \
-    [LA1_SPECIAL_FORM_## \
-        big] = {la1_intern(state, #name), la1_##name##_special_form},
+#define X(symbol, name, big) \
+    [LA1_SPECIAL_FORM_##     \
+        big] = {la1_intern(state, symbol), la1_##name##_special_form},
         LA1_SPECIAL_FORM_X()
 #undef X
     };
