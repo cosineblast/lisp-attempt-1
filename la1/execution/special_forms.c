@@ -145,7 +145,7 @@ Value *la1_lambda_special_form(LA1_State *state, ConsCell *lambda_arguments) {
     Closure *result_closure = la1_malloc(sizeof(*data_closure));
     result_closure->extra = data_closure;
     result_closure->function = apply_closure_function;
-    result_closure->type = CLOSURE_TYPE_DATA;
+    result_closure->type = LA1_CLOSURE_DATA;
 
     return la1_closure_into_value(state, result_closure);
 }

@@ -30,7 +30,7 @@ typedef struct DataClosure DataClosure;
 typedef Value *ClosureFunction(LA1_State *state, ConsCell *parameters,
                                void *extra);
 
-enum ClosureType { CLOSURE_TYPE_C, CLOSURE_TYPE_DATA };
+enum ClosureType { LA1_CLOSURE_C, LA1_CLOSURE_DATA };
 
 typedef enum ClosureType ClosureType;
 

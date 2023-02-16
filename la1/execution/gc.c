@@ -8,7 +8,7 @@
 #include <stdlib.h>
 
 #include "../common/alloc.h"
-#include "execution.h"
+#include "state.h"
 
 #define GC_THRESHOLD 100
 
@@ -64,7 +64,7 @@ static void mark_value(Value *value) {
     } else if (value->type == LA1_VALUE_CLOSURE) {
         Closure *closure = value->content.closure;
 
-        if (closure->type == CLOSURE_TYPE_DATA) {
+        if (closure->type == LA1_CLOSURE_DATA) {
             DataClosure *data_closure = closure->extra;
             mark_value(data_closure->body_source);
         }
@@ -115,7 +115,7 @@ static void free_value(Value *value) {
     if (value->type == LA1_VALUE_CLOSURE) {
         Closure *closure = value->content.closure;
 
-        if (closure->type == CLOSURE_TYPE_DATA) {
+        if (closure->type == LA1_CLOSURE_DATA) {
             DataClosure *data_closure = closure->extra;
             la1_bindings_decrement_ref(data_closure->environment);
             free_nodes(data_closure->parameters);

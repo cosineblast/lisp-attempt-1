@@ -37,4 +37,6 @@ LA1_SPECIAL_FORM_X()
 
 #undef X
 
+typedef Value *SpecialFormFunction(LA1_State *state, ConsCell *arguments);
+
 #endif  // LATTEMPT_SPECIAL_FORMS_H

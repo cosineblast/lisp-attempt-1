@@ -87,7 +87,7 @@ Closure *la1_create_c_closure(ClosureFunction *function, void *extra) {
     Closure *result = la1_malloc(sizeof(*result));
     result->function = function;
     result->extra = extra;
-    result->type = CLOSURE_TYPE_C;
+    result->type = LA1_CLOSURE_C;
     return result;
 }
 

@@ -5,8 +5,8 @@
 #include "builtin.h"
 
 #include "../common/die.h"
-#include "execution.h"
 #include "gc.h"
+#include "state.h"
 
 int equals(Value *left, Value *right);
 
