@@ -38,7 +38,9 @@ void test_lexer() {
 }
 
 void test_parser() {
-    ParseValue *value = la1_parse_value_from_stdin();
+    ParseValue *value;
+
+    la1_parse_value_from_stdin(&value);
 
     la1_dump_parse_value(value);
 }
@@ -47,7 +49,11 @@ void test_execution() {
     LA1_State *state = la1_create_la1_state();
 
     for (;;) {
-        ParseValue *parse_value = la1_parse_value_from_stdin();
+        ParseValue *parse_value;
+
+        if (!la1_parse_value_from_stdin(&parse_value)) {
+            break;
+        }
 
         Value *value = la1_realize_parse_value(state, parse_value);
 
@@ -55,6 +61,8 @@ void test_execution() {
 
         la1_display_value_ln(la1_eval(state, value));
     }
+
+    la1_destroy_state(state);
 }
 
 int main() { test_execution(); }

@@ -7,6 +7,6 @@
 
 #include "parse_value.h"
 
-ParseValue *la1_parse_value_from_stdin();
+int la1_parse_value_from_stdin(ParseValue** output);
 
 #endif  // LATTEMPT_PARSER_H

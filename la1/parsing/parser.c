@@ -10,70 +10,120 @@
 
 #include "lexer.h"
 
-ParseValue *parse_value(LexerState *pState);
+int parse_value(LexerState *state, ParseValue **output);
 
-LinkedList *parse_list(LexerState *p_state);
+int parse_list(LexerState *state, LinkedList **output);
 
-long parse_number(LexerState *p_state);
+int parse_number(LexerState *state, long *output);
 
-char *parse_symbol(LexerState *p_state);
+int parse_symbol(LexerState *state, char **output);
 
-ParseValue *la1_parse_value_from_stdin() {
+int la1_parse_value_from_stdin(ParseValue **output) {
     LexerState *state = la1_create_lexer_state();
 
     la1_lex(state);
 
-    ParseValue *result = parse_value(state);
+    if (!parse_value(state, output)) {
+        la1_free_lexer_state(state);
+        return 0;
+    }
 
     la1_free_lexer_state(state);
-
-    return result;
+    return 1;
 }
 
-ParseValue *parse_value(LexerState *state) {
+static int parse_list_into_value(LexerState *state, ParseValue **output) {
+    LinkedList *list;
+
+    if (parse_list(state, &list)) {
+        *output = la1_list_into_parse_value(list);
+        return 1;
+    }
+
+    return 0;
+}
+
+static void parse_number_into_value(LexerState *state, ParseValue **output) {
+    long value;
+
+    parse_number(state, &value);
+
+    *output = la1_number_into_parse_value(value);
+}
+
+static void parse_symbol_into_value(LexerState *state, ParseValue **output) {
+    char *value;
+
+    parse_symbol(state, &value);
+
+    *output = la1_symbol_into_parse_value(value);
+}
+
+int parse_value(LexerState *state, ParseValue **output) {
     if (state->current_token.type == LEXER_NO_TOKEN) {
-        fprintf(stderr, "EOF\n");
-        exit(0);
+        return 0;
     }
 
     assert(state->current_token.type != LEXER_NO_TOKEN);
 
     switch (state->current_token.type) {
         case '(':
-            return la1_list_into_parse_value(parse_list(state));
+            if (!parse_list_into_value(state, output)) return 0;
+            break;
 
         case LEXER_NUMBER_TOKEN:
-            return la1_number_into_parse_value(parse_number(state));
+            parse_number_into_value(state, output);
+            break;
 
         case LEXER_SYMBOL_TOKEN:
-            return la1_symbol_into_parse_value(parse_symbol(state));
+            parse_symbol_into_value(state, output);
+            break;
 
-        default:
+        default: {
             fprintf(stderr, "Unexpected token\n.");
             abort();
+        }
     }
+
+    return 1;
 }
 
-char *parse_symbol(LexerState *state) {
+int parse_symbol(LexerState *state, char **output) {
     assert(state->current_token.type == LEXER_SYMBOL_TOKEN);
 
-    return state->current_token.value.symbol;
+    *output = state->current_token.value.symbol;
+
+    return 1;
 }
 
-long parse_number(LexerState *state) {
+int parse_number(LexerState *state, long *output) {
     assert(state->current_token.type == LEXER_NUMBER_TOKEN);
 
-    return state->current_token.value.number;
+    *output = state->current_token.value.number;
+
+    return 1;
 }
 
-LinkedList *parse_list(LexerState *state) {
+int parse_list(LexerState *state, LinkedList **output) {
     la1_lex(state);
 
     if (state->current_token.type == ')') {
-        return NULL;
+        *output = NULL;
+        return 1;
     }
 
-    ParseValue *value = parse_value(state);
+    ParseValue *value;
+    LinkedList *next;
 
-    return la1_list(value, parse_list(state));
+    if (!parse_value(state, &value)) {
+        return 0;
+    }
+
+    if (!parse_list(state, &next)) {
+        return 0;
+    }
+
+    *output = la1_list(value, next);
+
+    return 1;
 }
