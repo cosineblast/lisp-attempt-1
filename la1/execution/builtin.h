@@ -15,9 +15,12 @@
     X(plus, "+")                 \
     X(minus, "-")                \
     X(times, "*")                \
+    X(div, "div")                \
+    X(mod, "mod")                \
     X(equals, "=")               \
     X(emptyp, "empty?")          \
-    X(gc, "gc")
+    X(gc, "gc")                  \
+    X(prn, "prn")
 
 #define X(name, symbol) \
     Value *la1_builtin_##name(LA1_State *state, ConsCell *arguments, void *);

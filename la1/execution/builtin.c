@@ -231,5 +231,49 @@ Value *la1_builtin_gc(LA1_State *state, ConsCell *arguments, void *extra) {
 
     la1_perform_gc(state);
 
+    return la1_number_into_value(state, (long)state->gc.gc_value_count);
+}
+
+Value *la1_builtin_div(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void)extra;
+
+    la1_expect_size(arguments, 2);
+
+    Value *first = arguments->item;
+    Value *next = la1_cons_next(arguments)->item;
+
+    la1_expect_type(first, LA1_VALUE_NUMBER);
+    la1_expect_type(next, LA1_VALUE_NUMBER);
+
+    long result = first->content.number / next->content.number;
+
+    return la1_number_into_value(state, result);
+}
+
+Value *la1_builtin_mod(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void)extra;
+
+    la1_expect_size(arguments, 2);
+
+    Value *first = arguments->item;
+    Value *next = la1_cons_next(arguments)->item;
+
+    la1_expect_type(first, LA1_VALUE_NUMBER);
+    la1_expect_type(next, LA1_VALUE_NUMBER);
+
+    long result = first->content.number % next->content.number;
+
+    return la1_number_into_value(state, result);
+}
+
+Value *la1_builtin_prn(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void)extra;
+
+    la1_expect_size(arguments, 1);
+
+    Value *value = arguments->item;
+
+    la1_display_value(value);
+
     return state->nil;
 }
