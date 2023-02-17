@@ -20,13 +20,13 @@ static void push_special_forms(LA1_State *p_state);
 static int try_eval_special_form(LA1_State *state, ConsCell *list,
                                  Value **result);
 
-static Value *eval_list(LA1_State *state, ConsCell *list);
+static Value *eval_list(LA1_State *state, Value *list_value);
 
 static Value *eval_symbol(LA1_State *p_state, KnownSymbol symbol);
 
 static void initialize_prelude(LA1_State *p_state);
 
-static Value *evaluate_children(LA1_State *state, ConsCell *list);
+static Value *evaluate_children(LA1_State *state, Value *list_value);
 
 static Value *closure_for(LA1_State *state, ClosureFunction *function);
 
@@ -143,7 +143,7 @@ Value *la1_eval(LA1_State *state, Value *value) {
             return value;
 
         case LA1_VALUE_CONS:
-            return eval_list(state, value->content.cons);
+            return eval_list(state, value);
 
         default:
             la1_die("Illegal value in source code.");
@@ -177,7 +177,11 @@ static int lookup_variable(LA1_State *state, KnownSymbol symbol,
     return 0;
 }
 
-static Value *eval_list(LA1_State *state, ConsCell *list) {
+static Value *eval_list(LA1_State *state, Value *list_value) {
+    assert(list_value->type == LA1_VALUE_CONS);
+
+    ConsCell *list = list_value->content.cons;
+
     if (list == NULL) {
         return la1_cons_into_value(state, NULL);
     }
@@ -195,7 +199,9 @@ static Value *eval_list(LA1_State *state, ConsCell *list) {
     } else if (try_expand_macro(state, list, &result)) {
         return la1_eval(state, result);
     } else {
-        return apply(state, evaluate_children(state, list));
+        Value *evaluated = evaluate_children(state, list_value);
+
+        return apply(state, evaluated);
     }
 }
 
@@ -255,10 +261,17 @@ int try_eval_special_form(LA1_State *state, ConsCell *list, Value **result) {
     return 0;
 }
 
-Value *evaluate_children(LA1_State *state, ConsCell *list) {
-    if (list == NULL) {
+Value *evaluate_children(LA1_State *state, Value *list_value) {
+    // todo: make this stupid thing conform to the 35 max
+    //  line function rule.
+
+    if (list_value == NULL) {
         return NULL;
     }
+
+    la1_safe_stack_push(state, list_value);
+
+    ConsCell *list = list_value->content.cons;
 
     Value *empty_list = la1_cons_into_value(state, NULL);
 
@@ -285,11 +298,13 @@ Value *evaluate_children(LA1_State *state, ConsCell *list) {
 
     Value *result_value = la1_cons_into_value(state, result);
 
-    // what? why 2 * count.
+    // what? why 2 * count?
     // if you look at the code, you'll see there are two pushes before the loop
     // runs, and two pushes on every iteration of the loop, and because count
     // starts at one, we do two pushes.
     la1_safe_stack_pop_n(state, 2 * count);
+
+    la1_safe_stack_pop(state);
 
     return result_value;
 }
