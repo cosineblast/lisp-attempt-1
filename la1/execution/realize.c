@@ -6,15 +6,26 @@
 
 #include "execution.h"
 
-ConsCell * realize_list(LA1_State *state, LinkedList *p_list);
+ConsCell *realize_list(LA1_State *state, LinkedList *p_list);
 
 Value *realize_symbol(LA1_State *state, char *input_symbol);
 
+Value *realize_value(LA1_State *state, ParseValue *value);
+
 Value *la1_realize_parse_value(LA1_State *state, ParseValue *value) {
+    // todo: actually make realization GC-safe.
+
+    la1_gc_disable(&state->gc);
+    Value *result = realize_value(state, value);
+    la1_gc_enable(&state->gc);
+
+    return result;
+}
+Value *realize_value(LA1_State *state, ParseValue *value) {
     switch (value->type) {
         case PARSE_VALUE_LIST:
             return la1_cons_into_value(
-                    state, realize_list(state, value->content.list));
+                state, realize_list(state, value->content.list));
 
         case PARSE_VALUE_NUMBER:
             return la1_number_into_value(state, value->content.number);
@@ -30,8 +41,9 @@ ConsCell * realize_list(LA1_State *state, LinkedList *p_list) {
     if (p_list == NULL) {
         return NULL;
     } else {
-        return la1_cons(la1_realize_parse_value(state, p_list->item),
-                        la1_cons_into_value(state, realize_list(state, p_list->next))
+        return la1_cons(
+            realize_value(state, p_list->item),
+            la1_cons_into_value(state, realize_list(state, p_list->next))
 
         );
     }
