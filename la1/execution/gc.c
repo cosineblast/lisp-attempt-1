@@ -17,7 +17,7 @@ void la1_gc_init(LA1_GC *gc) {
     gc->safe_stack = NULL;
     gc->values_since_last_gc = 0;
     gc->gc_values = NULL;
-    gc->enabled = 1;
+    gc->enabled = 0;
     gc->gc_value_count = 0;
 }
 
@@ -29,7 +29,6 @@ static void mark_bindings(Bindings *bindings);
 static void free_value(Value *value);
 static void free_nodes(LinkedList *nodes);
 void la1_perform_gc(LA1_State *state) {
-    printf("gc! %u\n", state->gc.gc_value_count);
 
     if (state->gc.enabled) {
         mark(state);
@@ -110,6 +109,8 @@ static void sweep(LA1_State *state) {
                 previous->next = current->next;
 
             free(current);
+
+            state->gc.gc_value_count -= 1;
         }
 
         current = next;

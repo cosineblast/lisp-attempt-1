@@ -11,7 +11,35 @@
     )
  )
 
- (defun f (x) (+ 1 x))
+(defun inc (x) (+ 1 x))
 
- (f 10)
+(defun even? (x) (= 0 (mod x 2)))
 
+(defun not (x) (if x false true))
+
+(defun map (f xs)
+    (if (empty? xs)
+        ()
+        (cons (f (first xs)) (map f (rest xs)))
+    )
+)
+
+(defun filter (f coll)
+    (if (empty? coll)
+        ()
+        (let (x (first coll)
+              xs (rest coll))
+
+         (if (f x)
+            (cons x (filter f xs))
+            (filter f xs)
+         )
+        )
+    )
+)
+
+(let (xs (list 11 22 33 44))
+    (filter even? (map inc xs))
+)
+
+(gc)

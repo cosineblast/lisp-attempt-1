@@ -57,6 +57,8 @@ LA1_State *la1_create_la1_state() {
 
     initialize_prelude(state);
 
+    la1_gc_enable(&state->gc);
+
     return state;
 }
 
