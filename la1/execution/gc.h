@@ -20,6 +20,8 @@ typedef struct LA1_GC LA1_GC;
 
 void la1_gc_init(LA1_GC *gc);
 
+void la1_gc_kill_all_values(LA1_GC *gc);
+
 void la1_gc_disable(LA1_GC *gc);
 void la1_gc_enable(LA1_GC *gc);
 

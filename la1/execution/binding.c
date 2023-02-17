@@ -125,3 +125,22 @@ void la1_binding_stack_pop(BindingStack *stack) {
 
     stack->list = next;
 }
+void la1_bindings_free(Bindings *bindings) {
+    free(bindings->content);
+    free(bindings);
+}
+
+void la1_binding_stack_free(BindingStack *stack) {
+    LinkedList *node = stack->list;
+
+    while (node != NULL) {
+        LinkedList *next = node->next;
+
+        la1_bindings_free(node->item);
+
+        free(node);
+        node = next;
+    }
+
+    free(stack);
+}

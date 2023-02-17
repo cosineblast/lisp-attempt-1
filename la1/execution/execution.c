@@ -62,6 +62,40 @@ LA1_State *la1_create_la1_state() {
     return state;
 }
 
+void la1_destroy_state(LA1_State *state) {
+    la1_perform_gc(state);
+
+    la1_gc_kill_all_values(&state->gc);
+
+    assert(state->past_stacks == NULL);
+
+    LinkedList *node = state->past_stacks;
+
+    while (node != NULL) {
+        la1_binding_stack_free(node->item);
+
+        LinkedList *next = node->next;
+        la1_binding_stack_free(node->item);
+        free(node);
+        node = next;
+    }
+
+    node = state->interned_symbols;
+
+    while (node != NULL) {
+        LinkedList *next = node->next;
+        free(node->item);
+        free(node);
+        node = next;
+    }
+
+    la1_bindings_free(state->global_bindings);
+
+    la1_binding_stack_free(state->binding_stack);
+
+    free(state);
+}
+
 static void push_special_forms(LA1_State *state) {
     assert(state);
 

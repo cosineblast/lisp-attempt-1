@@ -33,6 +33,8 @@ typedef struct Bindings Bindings;
 
 Bindings *la1_bindings_create();
 
+void la1_bindings_free(Bindings *bindings);
+
 Bindings *la1_bindings_create_with_capacity(size_t capacity);
 
 void la1_bindings_add(Bindings *bindings, KnownSymbol key, Value *value);
@@ -48,6 +50,8 @@ typedef struct {
 } BindingStack;
 
 BindingStack *la1_binding_stack_create();
+
+void la1_binding_stack_free(BindingStack *stack);
 
 void la1_binding_stack_push(BindingStack *stack, Bindings *bindings);
 

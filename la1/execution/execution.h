@@ -12,6 +12,7 @@
 #include "value.h"
 
 LA1_State *la1_create_la1_state();
+void la1_destroy_state(LA1_State *state);
 
 KnownSymbol la1_intern(LA1_State *state, const char *symbol);
 

@@ -29,7 +29,6 @@ static void mark_bindings(Bindings *bindings);
 static void free_value(Value *value);
 static void free_nodes(LinkedList *nodes);
 void la1_perform_gc(LA1_State *state) {
-
     if (state->gc.enabled) {
         mark(state);
         sweep(state);
@@ -133,6 +132,8 @@ static void free_value(Value *value) {
             free_nodes(data_closure->parameters);
             free(data_closure);
         }
+
+        free(closure);
     }
 
     free(value);
@@ -187,3 +188,19 @@ Value *la1_gc_spawn(LA1_State *state, Value *from_stack) {
 }
 void la1_gc_disable(LA1_GC *gc) { gc->enabled = 0; }
 void la1_gc_enable(LA1_GC *gc) { gc->enabled = 1; }
+
+void la1_gc_kill_all_values(LA1_GC *gc) {
+    assert(gc->safe_stack == NULL);
+
+    LinkedList *node = gc->gc_values;
+
+    while (node != NULL) {
+        LinkedList *next = node->next;
+
+        free_value(node->item);
+
+        free(node);
+
+        node = next;
+    }
+}
