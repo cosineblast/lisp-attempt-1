@@ -76,6 +76,8 @@ Bindings *load_bindings(LA1_State *state, ConsCell *list, unsigned int size) {
 
     Bindings *result = la1_bindings_create_with_capacity(size);
 
+    unsigned int count = 0;
+
     for (ConsCell *current = list; current != NULL;
          current = la1_cons_next(la1_cons_next(current))) {
         Value *value = current->item;
@@ -84,9 +86,11 @@ Bindings *load_bindings(LA1_State *state, ConsCell *list, unsigned int size) {
 
         la1_bindings_add(result, value->content.symbol,
                          la1_eval_push(state, la1_cons_next(current)->item));
+
+        count += 1;
     }
 
-    la1_safe_stack_pop_n(state, size);
+    la1_safe_stack_pop_n(state, count);
 
     return result;
 }
