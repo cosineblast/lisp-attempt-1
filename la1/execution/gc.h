@@ -12,12 +12,16 @@ struct LA1_GC {
     LinkedList *gc_values;
     int gc_value_count;
     int values_since_last_gc;
+    int enabled;
     LinkedList *safe_stack;
 };
 
 typedef struct LA1_GC LA1_GC;
 
 void la1_gc_init(LA1_GC *gc);
+
+void la1_gc_disable(LA1_GC *gc);
+void la1_gc_enable(LA1_GC *gc);
 
 void la1_perform_gc(LA1_State *state);
 

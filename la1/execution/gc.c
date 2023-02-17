@@ -5,6 +5,7 @@
 #include "gc.h"
 
 #include <assert.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "../common/alloc.h"
@@ -16,6 +17,7 @@ void la1_gc_init(LA1_GC *gc) {
     gc->safe_stack = NULL;
     gc->values_since_last_gc = 0;
     gc->gc_values = NULL;
+    gc->enabled = 1;
     gc->gc_value_count = 0;
 }
 
@@ -27,8 +29,12 @@ static void mark_bindings(Bindings *bindings);
 static void free_value(Value *value);
 static void free_nodes(LinkedList *nodes);
 void la1_perform_gc(LA1_State *state) {
-    mark(state);
-    sweep(state);
+    printf("gc! %u\n", state->gc.gc_value_count);
+
+    if (state->gc.enabled) {
+        mark(state);
+        sweep(state);
+    }
 }
 
 static void mark(LA1_State *state) {
@@ -178,3 +184,5 @@ Value *la1_gc_spawn(LA1_State *state, Value *from_stack) {
 
     return result;
 }
+void la1_gc_disable(LA1_GC *gc) { gc->enabled = 0; }
+void la1_gc_enable(LA1_GC *gc) { gc->enabled = 1; }
