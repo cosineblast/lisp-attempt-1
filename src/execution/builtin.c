@@ -97,6 +97,44 @@ Value *la1_builtin_plus(LA1_State *state, ConsCell *arguments, void *extra) {
     return la1_number_into_value(state, result);
 }
 
+Value *la1_builtin_less_than(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void) extra;
+
+    la1_expect_size(arguments, 2);
+
+    Value *left = arguments->item;
+    Value* right = la1_cons_next(arguments)->item;
+
+    la1_expect_type(left, LA1_VALUE_NUMBER);
+    la1_expect_type(right, LA1_VALUE_NUMBER);
+
+    if (left->content.number < right->content.number) {
+        return state->true_value;
+    } else {
+        return state->false_value;
+    }
+}
+
+
+Value *la1_builtin_greater_than(LA1_State *state, ConsCell *arguments, void *extra) {
+    (void) extra;
+
+    la1_expect_size(arguments, 2);
+
+    Value *left = arguments->item;
+    Value* right = la1_cons_next(arguments)->item;
+
+    la1_expect_type(left, LA1_VALUE_NUMBER);
+    la1_expect_type(right, LA1_VALUE_NUMBER);
+
+    if (left->content.number > right->content.number) {
+        return state->true_value;
+    } else {
+        return state->false_value;
+    }
+}
+
+
 Value *la1_builtin_minus(LA1_State *state, ConsCell *arguments, void *extra) {
     (void) state;
     (void) extra;

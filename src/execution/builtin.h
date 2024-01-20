@@ -14,6 +14,8 @@
     X(rest, "rest")              \
     X(plus, "+")                 \
     X(minus, "-")                \
+    X(greater_than, ">")         \
+    X(less_than, "<")            \
     X(times, "*")                \
     X(div, "div")                \
     X(mod, "mod")                \
