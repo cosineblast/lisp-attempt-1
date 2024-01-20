@@ -80,7 +80,10 @@ int lex_number(LexerState *state) {
 
     long result = 0;
 
-    scanf("%ld", &result);
+    if (scanf("%ld", &result) == EOF) {
+        fprintf(stderr, "I don't like this 'number'\n");
+        abort();
+    }
 
     state->current_token.type = LEXER_NUMBER_TOKEN;
     state->current_token.value.number = result;
