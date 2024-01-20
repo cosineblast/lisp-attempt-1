@@ -33,10 +33,12 @@ values: value values | value
 
 Only non-negative integer literals are supported.
 
-## Running the program
+## Building the program
 
-Having cmake installed,
-it is sufficient to do the following commands to compile the project.
+### cmake
+
+Once you have working build of cmake (3.18+)
+it is sufficient to do the following to compile the project.
 
 ```bash
 mkdir build
@@ -45,10 +47,16 @@ cmake ..
 cmake --build .
 ```
 
-Which will build the lattemp1 executable, which starts a rudimentary repl.
-The program just reads expressions and evaluates them.
-The file sample.txt provides some code samples which can be executed with
+### zig
 
+To build the project, `zig build` is sufficient.
+You can also run the project with `zig build run`.
+
+## Running the program
+
+The lattempt1 executable starts a rudimentary repl for the language.
+the file sample.txt provides some code samples which can be executed with
 ```
 ./lattempt1 < ../sample.txt
 ```
+using a POSIX shell.

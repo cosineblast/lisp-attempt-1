@@ -14,7 +14,7 @@
           pkgs.mkShell {
             nativeBuildInputs = [
               pkgs.cmake
-              pkgs.clang
+              pkgs.zig
             ];
           };
       });
