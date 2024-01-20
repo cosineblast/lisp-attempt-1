@@ -27,6 +27,24 @@ pub fn build(b: *std.Build) void {
         "src/execution/gc.c",
     }, &.{ "-Werror", "-Wall" });
 
+    const zig_content = b.addObject(.{
+        .name = "zig-content",
+        .root_source_file = .{ .path = "src/content.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+
+    const module = b.addModule("c", std.build.CreateModuleOptions{
+        .source_file = .{ .path = "src/c.zig" },
+    });
+
+    zig_content.addModule("c", module);
+
+    zig_content.linkLibC();
+    zig_content.addIncludePath(.{ .path = "." });
+
+    exe.addObject(zig_content);
+
     exe.linkLibC();
 
     b.installArtifact(exe);
