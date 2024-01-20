@@ -12,6 +12,7 @@
 #include "../common/alloc.h"
 #include "../common/die.h"
 #include "builtin.h"
+#include "data_stack.h"
 #include "gc.h"
 #include "special_forms.h"
 
@@ -50,6 +51,7 @@ LA1_State *la1_create_la1_state() {
     state->global_bindings = la1_bindings_create();
     state->interned_symbols = la1_empty_list();
     state->past_stacks = NULL;
+    state->data_stack = la1_data_stack_create();
 
     la1_gc_init(&state->gc);
 
@@ -92,6 +94,8 @@ void la1_destroy_state(LA1_State *state) {
     la1_bindings_free(state->global_bindings);
 
     la1_binding_stack_free(state->binding_stack);
+
+    la1_data_stack_free(state->data_stack);
 
     free(state);
 }

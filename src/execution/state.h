@@ -5,6 +5,7 @@
 #ifndef LATTEMPT_STATE_H
 #define LATTEMPT_STATE_H
 
+#include "data_stack.h"
 #include "gc.h"
 #include "special_forms.h"
 
@@ -22,6 +23,8 @@ struct LA1_State {
     LinkedList *past_stacks;
 
     BindingStack *binding_stack;
+
+    LA1_DataStack *data_stack;
 
     LA1_GC gc;
 
