@@ -12,6 +12,7 @@
 struct Value;
 
 typedef struct Value Value;
+typedef struct ConsCell ConsCell;
 
 typedef void *KnownSymbol;
 
@@ -59,5 +60,7 @@ void la1_binding_stack_pop(BindingStack *stack);
 
 int la1_binding_stack_lookup(BindingStack *stack, KnownSymbol key,
                              Value **result);
+
+void la1_bindings_overwrite_values(Bindings *bindings, ConsCell *list);
 
 #endif  // LATTEMPT_BINDING_H

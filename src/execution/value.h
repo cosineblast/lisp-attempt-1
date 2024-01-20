@@ -45,7 +45,8 @@ typedef struct {
     X(NUMBER)              \
     X(CONS)                \
     X(SYMBOL)              \
-    X(CLOSURE)
+    X(CLOSURE)             \
+    X(REITERATION)
 
 enum ValueType {
 #define X(name) LA1_VALUE_##name,
@@ -61,6 +62,9 @@ union UntaggedValue {
     KnownSymbol symbol;
     long number;
     Closure *closure;
+    // What about reiteration?
+    // reiteration uses the cons variant,
+    // as they have the same representation
 };
 
 typedef union UntaggedValue UntaggedValue;
@@ -74,6 +78,8 @@ struct Value {
 const char *la1_get_type_name(ValueType type);
 
 Value *la1_cons_into_value(LA1_State *state, ConsCell *value);
+
+Value *la1_cons_into_reiteration_value(LA1_State *state, ConsCell *value);
 
 Value *la1_number_into_value(LA1_State *state, long value);
 

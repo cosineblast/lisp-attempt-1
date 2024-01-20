@@ -16,7 +16,8 @@ struct LA1_State;
     X("quote", quote, QUOTE)                      \
     X("let", let, LET)                            \
     X("do", do, DO)                               \
-    X("def", def, DEF)
+    X("def", def, DEF)                            \
+    X("loop", loop, LOOP)
 
 enum {
     SPECIAL_FORM_COUNT = 0
