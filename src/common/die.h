@@ -1,5 +1,5 @@
 //
-// Created by figurantpp on 09/02/23.
+// Created by cosineblast on 09/02/23.
 //
 
 #ifndef LATTEMPT_DIE_H

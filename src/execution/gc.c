@@ -1,5 +1,5 @@
 //
-// Created by figurantpp on 15/02/23.
+// Created by cosineblast on 15/02/23.
 //
 
 #include "gc.h"
