@@ -8,10 +8,8 @@
 
 #include "../common/alloc.h"
 #include "../common/die.h"
-#include "binding.h"
 #include "execution.h"
 #include "gc.h"
-#include "value.h"
 
 Bindings *load_bindings(LA1_State *state, ConsCell *p_list,
                         unsigned int size);
@@ -207,46 +205,6 @@ Value *la1_macro_lambda_special_form(LA1_State *state, ConsCell *arguments) {
     assert(result->type == LA1_VALUE_CLOSURE);
 
     result->content.closure->is_macro = 1;
-
-    return result;
-}
-
-Value *la1_loop_special_form(LA1_State *state, ConsCell *arguments) {
-
-    la1_expect_size(arguments, 2);
-
-    Value *first_argument = arguments->item;
-
-    if (first_argument->type != LA1_VALUE_CONS) {
-        la1_die("loop: Expected list bindings.");
-    }
-
-    unsigned int first_argument_size =
-            la1_find_cons_list_size(first_argument->content.cons);
-
-    if (first_argument_size % 2 != 0) {
-        la1_die("let: Expected even number of bindings.");
-    }
-
-    Bindings *bindings =
-            load_bindings(state, first_argument->content.cons, first_argument_size);
-
-    Value *result;
-
-    la1_binding_stack_push(state->binding_stack, bindings);
-
-    for (;;) {
-        result = la1_eval(state, la1_cons_next(arguments)->item);
-
-        if (result->type == LA1_VALUE_REITERATION) {
-            la1_bindings_overwrite_values(bindings, result->content.cons);
-        }
-        else {
-            break;
-        }
-    }
-
-    la1_binding_stack_pop(state->binding_stack);
 
     return result;
 }

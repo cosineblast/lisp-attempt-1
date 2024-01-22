@@ -10,7 +10,6 @@
 
 #include "../common/alloc.h"
 #include "state.h"
-#include "value.h"
 
 #define GC_THRESHOLD 100
 
@@ -59,15 +58,14 @@ static void mark_value(Value *value) {
 
     value->gc_tag = 1;
 
-    if (value->type == LA1_VALUE_CONS || value->type == LA1_VALUE_REITERATION) {
-        ConsCell *cell = (value->content.cons);
+    if (value->type == LA1_VALUE_CONS) {
+        ConsCell *cell = value->content.cons;
 
         if (cell != NULL) {
             mark_value(cell->item);
             mark_value(cell->next);
         }
-    }
-    else if (value->type == LA1_VALUE_CLOSURE) {
+    } else if (value->type == LA1_VALUE_CLOSURE) {
         Closure *closure = value->content.closure;
 
         if (closure->type == LA1_CLOSURE_DATA) {
@@ -119,7 +117,7 @@ static void sweep(LA1_State *state) {
 }
 
 static void free_value(Value *value) {
-    if (value->type == LA1_VALUE_CONS || value->type == LA1_VALUE_REITERATION) {
+    if (value->type == LA1_VALUE_CONS) {
         ConsCell *cell = value->content.cons;
 
         free(cell);

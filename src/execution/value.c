@@ -44,10 +44,6 @@ void display_value(Value *value) {
             printf("<function>");
             break;
 
-        case LA1_VALUE_REITERATION:
-            printf("<reiteration>");
-            break;
-
         default:
 
             fprintf(stderr, "Illegal parse value type %d\n", value->type);
@@ -60,14 +56,6 @@ Value *la1_cons_into_value(LA1_State *state, ConsCell *value) {
     Value result;
     result.content.cons = value;
     result.type = LA1_VALUE_CONS;
-    return la1_gc_spawn(state, &result);
-}
-
-Value *la1_cons_into_reiteration_value(LA1_State *state, ConsCell *value) {
-    assert(state != NULL);
-    Value result;
-    result.content.cons = value;
-    result.type = LA1_VALUE_REITERATION;
     return la1_gc_spawn(state, &result);
 }
 

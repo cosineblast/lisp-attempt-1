@@ -22,8 +22,7 @@
     X(equals, "=")               \
     X(emptyp, "empty?")          \
     X(gc, "gc")                  \
-    X(prn, "prn")                \
-    X(repeat, "repeat")          \
+    X(prn, "prn")
 
 #define X(name, symbol) \
     Value *la1_builtin_##name(LA1_State *state, ConsCell *arguments, void *);

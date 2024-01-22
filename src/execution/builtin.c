@@ -2,15 +2,11 @@
 // Created by cosineblast on 09/02/23.
 //
 
-#include <stdio.h>
-
 #include "builtin.h"
 
 #include "../common/die.h"
 #include "gc.h"
 #include "state.h"
-#include "value.h"
-
 
 int equals(Value *left, Value *right);
 
@@ -231,9 +227,6 @@ int equals(Value *left_value, Value *right_value) {
 
         case LA1_VALUE_CLOSURE:
             return 0;
-
-        case LA1_VALUE_REITERATION:
-            return 0;
     }
 
     return 0;
@@ -319,20 +312,6 @@ Value *la1_builtin_prn(LA1_State *state, ConsCell *arguments, void *extra) {
     Value *value = arguments->item;
 
     la1_display_value(value);
-    printf("\n");
 
     return state->nil;
-}
-
-
-Value *la1_builtin_repeat(LA1_State *state, ConsCell *arguments, void *extra) {
-    (void) state;
-    (void) extra;
-
-    // why do we copy the arguments node?
-    // see: la1_builtin_list
-
-    ConsCell *content = la1_cons(arguments->item, arguments->next);
-
-    return la1_cons_into_reiteration_value(state, content);
 }

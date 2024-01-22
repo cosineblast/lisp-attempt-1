@@ -9,7 +9,6 @@
 #include <stdlib.h>
 
 #include "../common/alloc.h"
-#include "../execution/value.h"
 
 Bindings *la1_bindings_create() {
     Bindings *bindings = la1_malloc(sizeof(*bindings));
@@ -144,21 +143,4 @@ void la1_binding_stack_free(BindingStack *stack) {
     }
 
     free(stack);
-}
-
-void la1_bindings_overwrite_values(Bindings *bindings, ConsCell *list) {
-    assert(bindings && list);
-
-    size_t i = 0;
-
-    assert(la1_find_cons_list_size(list) == bindings->size);
-
-    for (ConsCell *current = list; current != NULL;
-         current = la1_cons_next(current)) {
-        Value *value = current->item;
-
-        bindings->content[i].value = value;
-
-        i += 1;
-    }
 }
