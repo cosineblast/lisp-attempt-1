@@ -13,8 +13,8 @@
         devShells.default =
           pkgs.mkShell {
             nativeBuildInputs = [
-              pkgs.cmake
               pkgs.zig
+              pkgs.zls
             ];
           };
       });
