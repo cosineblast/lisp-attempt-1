@@ -7,4 +7,5 @@ pub usingnamespace @cImport({
     @cInclude("src/execution/gc.h");
     @cInclude("src/execution/state.h");
     @cInclude("src/execution/value.h");
+    @cInclude("src/execution/binding.h");
 });

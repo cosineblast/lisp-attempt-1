@@ -24,7 +24,6 @@ pub fn build(b: *std.Build) void {
         "src/execution/realize.c",
         "src/common/die.c",
         "src/execution/builtin.c",
-        "src/execution/gc.c",
     }, &.{ "-Werror", "-Wall" });
 
     const zig_content = b.addObject(.{
