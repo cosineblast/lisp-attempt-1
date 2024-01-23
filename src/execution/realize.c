@@ -15,9 +15,9 @@ Value *realize_value(LA1_State *state, ParseValue *value);
 Value *la1_realize_parse_value(LA1_State *state, ParseValue *value) {
     // todo: actually make realization GC-safe.
 
-    la1_gc_disable(&state->gc);
+    la1_gc_disable(state->gc);
     Value *result = realize_value(state, value);
-    la1_gc_enable(&state->gc);
+    la1_gc_enable(state->gc);
 
     return result;
 }

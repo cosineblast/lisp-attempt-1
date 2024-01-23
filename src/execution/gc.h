@@ -7,20 +7,18 @@
 
 #include "../common/list.h"
 #include "value.h"
+#include <stdint.h>
 
-struct LA1_GC {
-    LinkedList *gc_values;
-    int gc_value_count;
-    int values_since_last_gc;
-    int enabled;
-    LinkedList *safe_stack;
-};
+struct LA1_GC;
 
 typedef struct LA1_GC LA1_GC;
 
-void la1_gc_init(LA1_GC *gc);
+LA1_GC *la1_gc_create();
+void la1_gc_destroy(LA1_GC *gc);
 
-void la1_gc_kill_all_values(LA1_GC *gc);
+uint32_t la1_gc_value_count(LA1_GC *gc);
+
+
 
 void la1_gc_disable(LA1_GC *gc);
 void la1_gc_enable(LA1_GC *gc);
@@ -31,7 +29,7 @@ Value *la1_safe_stack_push(LA1_State *state, Value *value);
 
 void la1_safe_stack_pop(LA1_State *state);
 
-void la1_safe_stack_pop_n(LA1_State *state, unsigned int n);
+void la1_safe_stack_pop_n(LA1_State *state, uint32_t n);
 
 Value *la1_gc_spawn(LA1_State *state, Value *from_stack);
 

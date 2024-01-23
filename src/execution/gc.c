@@ -13,7 +13,36 @@
 
 #define GC_THRESHOLD 100
 
-void la1_gc_init(LA1_GC *gc) {
+struct LA1_GC {
+    LinkedList *gc_values;
+    int gc_value_count;
+    int values_since_last_gc;
+    int enabled;
+    LinkedList *safe_stack;
+};
+
+static void la1_gc_init(LA1_GC *gc);
+static void la1_gc_kill_all_values(LA1_GC *gc);
+
+LA1_GC *la1_gc_create() {
+    LA1_GC *gc = la1_malloc(sizeof(*gc));
+
+    la1_gc_init(gc);
+
+    return gc;
+}
+
+uint32_t la1_gc_value_count(LA1_GC *gc) {
+    return gc->gc_value_count;
+}
+
+void la1_gc_destroy(LA1_GC *gc) {
+    la1_gc_kill_all_values(gc);
+
+    free(gc);
+}
+
+static void la1_gc_init(LA1_GC *gc) {
     gc->safe_stack = NULL;
     gc->values_since_last_gc = 0;
     gc->gc_values = NULL;
@@ -29,7 +58,7 @@ static void mark_bindings(Bindings *bindings);
 static void free_value(Value *value);
 static void free_nodes(LinkedList *nodes);
 void la1_perform_gc(LA1_State *state) {
-    if (state->gc.enabled) {
+    if (state->gc->enabled) {
         mark(state);
         sweep(state);
     }
@@ -47,7 +76,7 @@ static void mark(LA1_State *state) {
         mark_bindings(current->item);
     }
 
-    for (LinkedList *current = state->gc.safe_stack; current != NULL;
+    for (LinkedList *current = state->gc->safe_stack; current != NULL;
          current = current->next) {
         mark_value(current->item);
     }
@@ -88,7 +117,7 @@ static void mark_bindings(Bindings *bindings) {
 
 static void sweep(LA1_State *state) {
     LinkedList *previous = NULL;
-    LinkedList *current = state->gc.gc_values;
+    LinkedList *current = state->gc->gc_values;
     LinkedList *next = NULL;
 
     while (current != NULL) {
@@ -103,13 +132,13 @@ static void sweep(LA1_State *state) {
             free_value(value);
 
             if (previous == NULL)
-                state->gc.gc_values = current->next;
+                state->gc->gc_values = current->next;
             else
                 previous->next = current->next;
 
             free(current);
 
-            state->gc.gc_value_count -= 1;
+            state->gc->gc_value_count -= 1;
         }
 
         current = next;
@@ -151,15 +180,15 @@ static void free_nodes(LinkedList *nodes) {
 }
 
 Value *la1_safe_stack_push(LA1_State *state, Value *value) {
-    state->gc.safe_stack = la1_list(value, state->gc.safe_stack);
+    state->gc->safe_stack = la1_list(value, state->gc->safe_stack);
 
     return value;
 }
 
 void la1_safe_stack_pop(LA1_State *state) {
-    LinkedList *node = state->gc.safe_stack;
+    LinkedList *node = state->gc->safe_stack;
 
-    state->gc.safe_stack = state->gc.safe_stack->next;
+    state->gc->safe_stack = state->gc->safe_stack->next;
 
     free(node);
 }
@@ -171,25 +200,25 @@ void la1_safe_stack_pop_n(LA1_State *state, unsigned int n) {
 }
 
 Value *la1_gc_spawn(LA1_State *state, Value *from_stack) {
-    if (state->gc.values_since_last_gc >= GC_THRESHOLD) {
+    if (state->gc->values_since_last_gc >= GC_THRESHOLD) {
         la1_perform_gc(state);
-        state->gc.values_since_last_gc = 1;
+        state->gc->values_since_last_gc = 1;
     }
 
     Value *result = la1_malloc(sizeof(*result));
     *result = *from_stack;
     result->gc_tag = 0;
 
-    state->gc.values_since_last_gc += 1;
-    state->gc.gc_value_count += 1;
-    state->gc.gc_values = la1_list(result, state->gc.gc_values);
+    state->gc->values_since_last_gc += 1;
+    state->gc->gc_value_count += 1;
+    state->gc->gc_values = la1_list(result, state->gc->gc_values);
 
     return result;
 }
 void la1_gc_disable(LA1_GC *gc) { gc->enabled = 0; }
 void la1_gc_enable(LA1_GC *gc) { gc->enabled = 1; }
 
-void la1_gc_kill_all_values(LA1_GC *gc) {
+static void la1_gc_kill_all_values(LA1_GC *gc) {
     assert(gc->safe_stack == NULL);
 
     LinkedList *node = gc->gc_values;

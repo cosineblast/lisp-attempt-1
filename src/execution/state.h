@@ -26,7 +26,7 @@ struct LA1_State {
 
     LA1_DataStack *data_stack;
 
-    LA1_GC gc;
+    LA1_GC *gc;
 
     SpecialFormEntry special_form_table[SPECIAL_FORM_COUNT];
 

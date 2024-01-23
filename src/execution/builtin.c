@@ -269,7 +269,7 @@ Value *la1_builtin_gc(LA1_State *state, ConsCell *arguments, void *extra) {
 
     la1_perform_gc(state);
 
-    return la1_number_into_value(state, (long)state->gc.gc_value_count);
+    return la1_number_into_value(state, (long)la1_gc_value_count(state->gc));
 }
 
 Value *la1_builtin_div(LA1_State *state, ConsCell *arguments, void *extra) {

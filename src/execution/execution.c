@@ -52,14 +52,13 @@ LA1_State *la1_create_la1_state() {
     state->interned_symbols = la1_empty_list();
     state->past_stacks = NULL;
     state->data_stack = la1_data_stack_create();
-
-    la1_gc_init(&state->gc);
+    state->gc = la1_gc_create();
 
     push_special_forms(state);
 
     initialize_prelude(state);
 
-    la1_gc_enable(&state->gc);
+    la1_gc_enable(state->gc);
 
     return state;
 }
@@ -67,7 +66,7 @@ LA1_State *la1_create_la1_state() {
 void la1_destroy_state(LA1_State *state) {
     la1_perform_gc(state);
 
-    la1_gc_kill_all_values(&state->gc);
+    la1_gc_destroy(state->gc);
 
     assert(state->past_stacks == NULL);
 
